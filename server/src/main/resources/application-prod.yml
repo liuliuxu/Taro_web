@@ -1,6 +1,6 @@
 # 生产环境配置示例。部署时通过环境变量指定 profile: --spring.profiles.active=prod
 server:
-  port: 8080
+  port: 8081
 
 spring:
   datasource:

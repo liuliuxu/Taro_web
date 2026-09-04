@@ -1,141 +1,183 @@
 import { useState, useEffect } from 'react'
-import Taro, { useLoad } from '@tarojs/taro'
-import { View, Text, Image, ScrollView, Swiper, SwiperItem } from '@tarojs/components'
-import { AtSearchBar, AtTag, AtButton } from 'taro-ui'
-import { machineryApi } from '../../services/api'
-import type { Machinery } from '../../types'
+import Taro, { useDidShow } from '@tarojs/taro'
+import { View, Text, ScrollView } from '@tarojs/components'
+import { machineryApi, workOrderApi, authApi } from '../../services/api'
+import type { User, WorkOrder, WorkOrderStats } from '../../types'
+import { statusLabel, typeLabel, statusColor, statusBg } from '../../utils/workOrderMeta'
+import { getCategoryTheme } from '../../utils/deviceVisual'
 import './index.scss'
 
 export default function Index() {
-  const [keyword, setKeyword] = useState('')
-  const [categories, setCategories] = useState<string[]>([])
-  const [activeCategory, setActiveCategory] = useState('全部')
-  const [recommendations, setRecommendations] = useState<Machinery[]>([])
+  const [user, setUser] = useState<User | null>(null)
+  const [loggedIn, setLoggedIn] = useState(false)
+  const [stats, setStats] = useState<WorkOrderStats | null>(null)
+  const [todos, setTodos] = useState<WorkOrder[]>([])
+  const [deviceCount, setDeviceCount] = useState(0)
 
-  useLoad(() => {
-    initData()
+  useDidShow(() => {
+    loadEverything()
   })
 
-  async function initData() {
+  async function loadEverything() {
+    const token = Taro.getStorageSync('token')
+    setLoggedIn(!!token)
+    if (!token) return
+
     try {
-      const cats = await machineryApi.getCategories()
-      setCategories(['全部', ...cats])
-      const recs = await machineryApi.getRecommendations()
-      setRecommendations(recs)
-    } catch (error) {
-      console.error(error)
+      const profile = await authApi.getProfile()
+      setUser(profile)
+    } catch (e) {
+      /* ignore */
+    }
+    try {
+      const s = await workOrderApi.getStats()
+      setStats(s)
+    } catch (e) {
+      /* ignore */
+    }
+    try {
+      const t = await workOrderApi.getMyTodos()
+      setTodos(t.slice(0, 3))
+    } catch (e) {
+      /* ignore */
+    }
+    try {
+      const d = await machineryApi.getList({ page: 1, pageSize: 1 })
+      setDeviceCount(d.total)
+    } catch (e) {
+      /* ignore */
     }
   }
 
-  function onSearch() {
-    Taro.navigateTo({
-      url: `/pages/device-list/index?keyword=${encodeURIComponent(keyword)}`
-    })
+  function goTo(url: string) {
+    Taro.navigateTo({ url })
   }
 
-  function onChangeCategory(cat: string) {
-    setActiveCategory(cat)
-    Taro.navigateTo({
-      url: `/pages/device-list/index${cat !== '全部' ? `?category=${encodeURIComponent(cat)}` : ''}`
-    })
+  function switchTo(url: string) {
+    Taro.switchTab({ url })
   }
 
-  function goToDetail(id: number) {
-    Taro.navigateTo({ url: `/pages/device-detail/index?id=${id}` })
+  function requireLogin() {
+    if (!loggedIn) {
+      Taro.navigateTo({ url: '/pages/login/index' })
+      return false
+    }
+    return true
+  }
+
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? '上午好' : hour < 18 ? '下午好' : '晚上好'
+
+  function StatCard({ label, value, color, onClick }: { label: string; value: string | number; color: string; onClick?: () => void }) {
+    return (
+      <View className='stat-card' onClick={onClick} hoverClass='stat-card-hover'>
+        <Text className='stat-value' style={{ color }}>{value}</Text>
+        <Text className='stat-label'>{label}</Text>
+      </View>
+    )
   }
 
   return (
-    <View className='index-page'>
-      <View className='header'>
-        <AtSearchBar
-          value={keyword}
-          onChange={(v) => setKeyword(String(v))}
-          onActionClick={onSearch}
-          onConfirm={onSearch}
-          placeholder='搜索挖掘机、装载机等设备'
-          showActionButton
-        />
+    <ScrollView scrollY className='home-page'>
+      {/* 顶部深色区 */}
+      <View className='hero'>
+        <View className='hero-top flex-between'>
+          <View className='hero-user'>
+            <View className='hero-avatar'>{user?.nickname?.charAt(0) || '重'}</View>
+            <View className='hero-user-info'>
+              <Text className='hero-name'>{loggedIn ? `${greeting}，${user?.nickname || '用户'}` : '欢迎使用'}</Text>
+              <Text className='hero-sub'>{loggedIn ? (user?.role === 'admin' ? '系统管理员' : user?.role === 'manager' ? '设备负责人' : '一线作业人员') : '请先登录以使用完整功能'}</Text>
+            </View>
+          </View>
+          {!loggedIn ? (
+            <View className='login-chip' onClick={() => goTo('/pages/login/index')}>登录</View>
+          ) : (
+            <View className='hero-badge'>企业版</View>
+          )}
+        </View>
+
+        {/* 统计卡 */}
+        <View className='stat-grid'>
+          <StatCard label='设备总数' value={deviceCount} color='#FFFFFF' />
+          <StatCard label='待办工单' value={stats?.myTodos ?? 0} color='#FFD9B8' />
+          <StatCard label='处理中' value={(stats?.assigned ?? 0) + (stats?.processing ?? 0)} color='#BBDCFF' />
+          <StatCard label='已完成' value={stats?.done ?? 0} color='#C8F7DE' />
+        </View>
       </View>
 
-      <Swiper
-        className='banner'
-        indicatorColor='#999'
-        indicatorActiveColor='#4A90D9'
-        circular
-        autoplay
-      >
-        <SwiperItem>
-          <View className='banner-item banner-1'>
-            <Text className='banner-title'>重工机械设备</Text>
-            <Text className='banner-subtitle'>品质保障 · 专业服务</Text>
+      {/* 快捷入口 */}
+      <View className='quick-panel'>
+        <Text className='panel-title'>快捷操作</Text>
+        <View className='quick-grid'>
+          <View className='quick-item' hoverClass='quick-hover' onClick={() => requireLogin() && goTo('/pages/workorder-create/index?type=repair')}>
+            <View className='quick-icon qi-report'>报</View>
+            <Text className='quick-text'>我要报修</Text>
           </View>
-        </SwiperItem>
-        <SwiperItem>
-          <View className='banner-item banner-2'>
-            <Text className='banner-title'>支持租赁与购买</Text>
-            <Text className='banner-subtitle'>灵活选择 快捷交付</Text>
+          <View className='quick-item' hoverClass='quick-hover' onClick={() => requireLogin() && goTo('/pages/workorder-create/index?type=maintain')}>
+            <View className='quick-icon qi-maintain'>养</View>
+            <Text className='quick-text'>保养工单</Text>
           </View>
-        </SwiperItem>
-        <SwiperItem>
-          <View className='banner-item banner-3'>
-            <Text className='banner-title'>全国配送</Text>
-            <Text className='banner-subtitle'>专业物流 安全到达</Text>
+          <View className='quick-item' hoverClass='quick-hover' onClick={() => requireLogin() && switchTo('/pages/workorder-list/index')}>
+            <View className='quick-icon qi-todo'>单</View>
+            <Text className='quick-text'>工单管理</Text>
           </View>
-        </SwiperItem>
-      </Swiper>
+          <View className='quick-item' hoverClass='quick-hover' onClick={() => requireLogin() && switchTo('/pages/device-list/index')}>
+            <View className='quick-icon qi-device'>备</View>
+            <Text className='quick-text'>设备台账</Text>
+          </View>
+        </View>
+      </View>
 
-      <View className='category-section card'>
-        <View className='section-header'>
+      {/* 我的待办 */}
+      <View className='section'>
+        <View className='section-head flex-between'>
+          <Text className='section-title'>我的待办</Text>
+          <Text className='section-more' onClick={() => requireLogin() && switchTo('/pages/workorder-list/index')}>全部 ›</Text>
+        </View>
+        {!loggedIn ? (
+          <View className='empty'>登录后查看我的待办工单</View>
+        ) : todos.length === 0 ? (
+          <View className='empty'>暂无待办，一切正常</View>
+        ) : (
+          todos.map((t) => (
+            <View key={t.id} className='todo-card' hoverClass='todo-hover' onClick={() => goTo(`/pages/workorder-detail/index?id=${t.id}`)}>
+              <View className='todo-left'>
+                <Text className='todo-status' style={{ color: statusColor(t.status), background: statusBg(t.status) }}>{statusLabel(t.status)}</Text>
+                <View className='todo-body'>
+                  <Text className='todo-title'>{t.title}</Text>
+                  <Text className='todo-meta'>{typeLabel(t.type)} · {t.machineryName}</Text>
+                </View>
+              </View>
+              <View className={`prio prio-${t.priority}`} />
+            </View>
+          ))
+        )}
+      </View>
+
+      {/* 分类浏览 */}
+      <View className='section'>
+        <View className='section-head flex-between'>
           <Text className='section-title'>设备分类</Text>
+          <Text className='section-more' onClick={() => switchTo('/pages/device-list/index')}>全部 ›</Text>
         </View>
         <ScrollView scrollX className='category-scroll' showScrollbar={false}>
-          <View className='category-list'>
-            {categories.map((cat) => (
-              <View
-                key={cat}
-                className={`category-item ${activeCategory === cat ? 'active' : ''}`}
-                onClick={() => onChangeCategory(cat)}
-              >
-                <Text>{cat}</Text>
-              </View>
-            ))}
+          <View className='category-row'>
+            {['挖掘机', '装载机', '破碎锤', '自卸车', '泵车', '塔吊', '推土机', '压路机', '钻机'].map((c) => {
+              const theme = getCategoryTheme(c)
+              return (
+                <View key={c} className='category-chip' onClick={() => goTo(`/pages/device-list/index?category=${encodeURIComponent(c)}`)}>
+                  <View className='category-dot' style={{ background: `linear-gradient(135deg, ${theme.from}, ${theme.to})` }}>
+                    <Text className='category-dot-text'>{theme.icon}</Text>
+                  </View>
+                  <Text className='category-chip-text'>{c}</Text>
+                </View>
+              )
+            })}
           </View>
         </ScrollView>
       </View>
 
-      <View className='recommend-section'>
-        <View className='section-header'>
-          <Text className='section-title'>热门设备</Text>
-          <Text
-            className='section-more'
-            onClick={() => Taro.navigateTo({ url: '/pages/device-list/index' })}
-          >
-            查看全部 &gt;
-          </Text>
-        </View>
-        {recommendations.map((item) => (
-          <View
-            key={item.id}
-            className='device-card card'
-            onClick={() => goToDetail(item.id)}
-          >
-            <View className='device-image-placeholder'>
-              <Text className='device-image-text'>{item.name.charAt(0)}</Text>
-            </View>
-            <View className='device-info'>
-              <Text className='device-name'>{item.name}</Text>
-              <View className='device-tags'>
-                <AtTag size='small' type='primary'>型号：{item.model}</AtTag>
-                <AtTag size='small' type='default'>{item.category}</AtTag>
-              </View>
-              <View className='device-footer'>
-                <Text className='device-price'>¥{item.price}万</Text>
-                <Text className='device-stock'>库存 {item.stock} 台</Text>
-              </View>
-            </View>
-          </View>
-        ))}
-      </View>
-    </View>
+      <View style={{ height: '30px' }} />
+    </ScrollView>
   )
 }

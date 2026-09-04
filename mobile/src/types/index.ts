@@ -15,6 +15,7 @@ export interface Machinery {
     capacity: string
   }
   brand: string
+  recommended?: boolean
   createdAt: string
   updatedAt: string
 }
@@ -25,9 +26,46 @@ export interface User {
   nickname: string
   phone: string
   email: string
-  role: 'customer' | 'admin'
+  role: string
   avatar: string
   createdAt: string
+}
+
+export type WorkOrderStatus =
+  | 'created'
+  | 'assigned'
+  | 'processing'
+  | 'review'
+  | 'done'
+  | 'cancelled'
+
+export type WorkOrderType = 'repair' | 'maintain'
+
+export type WorkOrderPriority = 'low' | 'medium' | 'high' | 'urgent'
+
+export interface WorkOrder {
+  id: number
+  workNo: string
+  machineryId: number
+  machineryName: string
+  machineryModel?: string
+  machineryCategory?: string
+  title: string
+  description: string
+  type: WorkOrderType
+  priority: WorkOrderPriority
+  status: WorkOrderStatus
+  reportUserId: number
+  reportUserName: string
+  assigneeUserId?: number
+  assigneeName?: string
+  handleNote?: string
+  cost?: number
+  reportedAt: string
+  assignedAt?: string
+  completedAt?: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface Order {
@@ -38,7 +76,7 @@ export interface Order {
   userId: number
   type: 'purchase' | 'rental'
   amount: number
-  status: 'pending' | 'paid' | 'shipped' | 'completed' | 'cancelled'
+  status: string
   createdAt: string
 }
 
@@ -53,4 +91,14 @@ export interface Pagination<T> {
   total: number
   page: number
   pageSize: number
+}
+
+export interface WorkOrderStats {
+  created: number
+  assigned: number
+  processing: number
+  review: number
+  done: number
+  total: number
+  myTodos: number
 }

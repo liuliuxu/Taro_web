@@ -2,14 +2,20 @@ package com.heavymachinery.config;
 
 import com.heavymachinery.entity.Machinery;
 import com.heavymachinery.entity.User;
+import com.heavymachinery.entity.WorkOrder;
 import com.heavymachinery.repository.MachineryRepository;
 import com.heavymachinery.repository.UserRepository;
+import com.heavymachinery.repository.WorkOrderRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 初始化示例数据（仅当数据库为空时执行）
@@ -20,46 +26,109 @@ public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final MachineryRepository machineryRepository;
+    private final WorkOrderRepository workOrderRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UserRepository userRepository,
                            MachineryRepository machineryRepository,
+                           WorkOrderRepository workOrderRepository,
                            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.machineryRepository = machineryRepository;
+        this.workOrderRepository = workOrderRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
+    @Transactional
     public void run(String... args) {
-        if (userRepository.count() == 0) {
-            initUsers();
-        }
+        initUsers();
         if (machineryRepository.count() == 0) {
             initMachinery();
+        }
+        if (workOrderRepository.count() == 0) {
+            initWorkOrders();
         }
     }
 
     private void initUsers() {
-        User admin = new User();
-        admin.setUsername("admin");
-        admin.setPassword(passwordEncoder.encode("admin123"));
-        admin.setNickname("系统管理员");
-        admin.setPhone("13800000000");
-        admin.setEmail("admin@heavymachinery.com");
-        admin.setRole("admin");
-        userRepository.save(admin);
+        createUserIfMissing("admin", "admin123", "系统管理员", "13800000000", "admin@heavymachinery.com", "admin");
+        createUserIfMissing("manager", "manager123", "设备负责人", "13611112222", null, "manager");
+        createUserIfMissing("operator", "operator123", "一线维修工", "13533334444", null, "operator");
+        log.info("已初始化用户: admin/admin123, manager/manager123, operator/operator123");
+    }
 
-        User customer = new User();
-        customer.setUsername("demo");
-        customer.setPassword(passwordEncoder.encode("demo123"));
-        customer.setNickname("示例用户");
-        customer.setPhone("13912345678");
-        customer.setEmail("demo@example.com");
-        customer.setRole("customer");
-        userRepository.save(customer);
+    private void createUserIfMissing(String username, String rawPassword, String nickname,
+                                     String phone, String email, String role) {
+        if (userRepository.findByUsername(username).isPresent()) {
+            return;
+        }
+        User u = new User();
+        u.setUsername(username);
+        u.setPassword(passwordEncoder.encode(rawPassword));
+        u.setNickname(nickname);
+        u.setPhone(phone);
+        u.setEmail(email);
+        u.setRole(role);
+        userRepository.save(u);
+    }
 
-        log.info("已初始化用户: admin/admin123, demo/demo123");
+    private void initWorkOrders() {
+        Machinery m1 = machineryRepository.findAll().stream()
+                .filter(m -> "液压挖掘机".equals(m.getName())).findFirst().orElse(null);
+        Machinery m2 = machineryRepository.findAll().stream()
+                .filter(m -> "轮式装载机".equals(m.getName())).findFirst().orElse(null);
+
+        User operator = userRepository.findByUsername("operator").orElse(null);
+
+        long operatorId = operator != null ? operator.getId() : 3L;
+        String operatorName = operator != null ? operator.getNickname() : "一线维修工";
+
+        if (m1 != null) {
+            saveWork("液压系统压力异常，挖掘无力，需检查主泵及液压油路",
+                    m1, "维修", 1L, "系统管理员", operatorId, operatorName, "已更换液压油滤芯并复位溢流阀", "assigned", "high");
+            saveWork("每日例行保养：更换机油及滤芯",
+                    m1, "保养", 2L, "设备负责人", operatorId, operatorName, null, "created", "medium");
+        }
+        if (m2 != null) {
+            saveWork("装载机铲斗油缸漏油，需更换油封",
+                    m2, "维修", 3L, "设备负责人", operatorId, operatorName, "更换铲斗油缸油封，测试正常", "review", "medium");
+            saveWork("发动机异响，需全面检查",
+                    m2, "维修", 1L, "系统管理员", null, null, null, "created", "urgent");
+        }
+        log.info("已初始化示例维修/保养工单");
+    }
+
+    private void saveWork(String title, Machinery m, String type,
+                          Long reporterId, String reporterName,
+                          Long assigneeId, String assigneeName,
+                          String note, String status, String priority) {
+        WorkOrder wo = new WorkOrder();
+        wo.setWorkNo("WO" + System.currentTimeMillis() + ThreadLocalRandom.current().nextInt(1000, 9999));
+        wo.setMachineryId(m.getId());
+        wo.setMachineryName(m.getName());
+        wo.setTitle(title);
+        wo.setType("维修".equals(type) ? "repair" : "maintain");
+        wo.setPriority(priority);
+        wo.setStatus(status);
+        wo.setReportUserId(reporterId);
+        wo.setReportUserName(reporterName);
+        wo.setAssigneeUserId(assigneeId);
+        wo.setAssigneeName(assigneeName);
+        wo.setHandleNote(note);
+        wo.setReportedAt(LocalDateTime.now().minusDays(1));
+        if ("assigned".equals(status)) {
+            wo.setAssignedAt(LocalDateTime.now().minusHours(18));
+        }
+        if ("review".equals(status)) {
+            wo.setAssignedAt(LocalDateTime.now().minusHours(30));
+            wo.setCompletedAt(null);
+        }
+        if ("done".equals(status)) {
+            wo.setAssignedAt(LocalDateTime.now().minusDays(2));
+            wo.setCompletedAt(LocalDateTime.now().minusHours(20));
+        }
+        workOrderRepository.save(wo);
     }
 
     private void initMachinery() {

@@ -1,154 +1,170 @@
-import { useState, useEffect } from 'react'
-import Taro, { useLoad, useDidShow } from '@tarojs/taro'
-import { View, Text, Image } from '@tarojs/components'
-import { AtList, AtListItem, AtAvatar, AtTag } from 'taro-ui'
-import { authApi, orderApi } from '../../services/api'
-import type { User, Order } from '../../types'
+import { useState } from 'react'
+import Taro, { useDidShow } from '@tarojs/taro'
+import { View, Text, ScrollView } from '@tarojs/components'
+import { authApi, workOrderApi, machineryApi } from '../../services/api'
+import type { User, WorkOrder } from '../../types'
+import { statusLabel, statusColor, statusBg, typeLabel } from '../../utils/workOrderMeta'
 import './index.scss'
 
 export default function Profile() {
   const [user, setUser] = useState<User | null>(null)
-  const [orders, setOrders] = useState<Order[]>([])
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false)
+  const [stats, setStats] = useState<any>(null)
+  const [todos, setTodos] = useState<WorkOrder[]>([])
 
   useDidShow(() => {
-    checkLogin()
+    const token = Taro.getStorageSync('token')
+    setLoggedIn(!!token)
+    if (token) {
+      loadData()
+    }
   })
 
-  async function checkLogin() {
-    const token = Taro.getStorageSync('token')
-    if (token) {
-      setIsLoggedIn(true)
-      loadUser()
-      loadOrders()
-    } else {
-      setIsLoggedIn(false)
-    }
-  }
-
-  async function loadUser() {
+  async function loadData() {
     try {
-      const data = await authApi.getProfile()
-      setUser(data)
-    } catch (error) {
-      console.error(error)
+      const p = await authApi.getProfile()
+      setUser(p)
+    } catch (e) {
+      Taro.removeStorageSync('token')
+      setLoggedIn(false)
     }
-  }
-
-  async function loadOrders() {
     try {
-      const data = await orderApi.getMyOrders()
-      setOrders(data)
-    } catch (error) {
-      console.error(error)
-    }
+      setStats(await workOrderApi.getStats())
+    } catch (e) { /* ignore */ }
+    try {
+      setTodos((await workOrderApi.getMyTodos()).slice(0, 3))
+    } catch (e) { /* ignore */ }
   }
 
-  function goToLogin() {
-    Taro.navigateTo({ url: '/pages/login/index' })
-  }
+  const roleLabel = user?.role === 'admin' ? '管理员' : user?.role === 'manager' ? '设备负责人' : user?.role === 'operator' ? '作业人员' : '成员'
 
   function logout() {
     Taro.showModal({
-      title: '提示',
-      content: '确定要退出登录吗？',
-      success: (res) => {
-        if (res.confirm) {
+      title: '退出登录',
+      content: '确定要退出当前账号吗？',
+      success: (r) => {
+        if (r.confirm) {
           Taro.removeStorageSync('token')
+          setLoggedIn(false)
           setUser(null)
-          setIsLoggedIn(false)
-          setOrders([])
+          Taro.showToast({ title: '已退出', icon: 'none' })
         }
       }
     })
   }
 
-  const pendingOrders = orders.filter((o) => o.status === 'pending').length
-  const paidOrders = orders.filter((o) => o.status === 'paid' || o.status === 'shipped').length
-  const completedOrders = orders.filter((o) => o.status === 'completed').length
+  const menuItems = [
+    { label: '设备台账', value: '查看全部设备', action: () => Taro.switchTab({ url: '/pages/device-list/index' }) },
+    { label: '工单管理', value: '报修 / 派单 / 处理', action: () => Taro.switchTab({ url: '/pages/workorder-list/index' }) },
+    { label: '新建工单', value: '发起报修或保养', action: () => Taro.navigateTo({ url: '/pages/workorder-create/index' }) }
+  ]
 
   return (
-    <View className='profile-page'>
-      <View className='profile-header'>
-        {isLoggedIn && user ? (
-          <View className='user-info'>
-            <AtAvatar
-              className='user-avatar'
-              circle
-              text={user.nickname?.charAt(0) || '用'}
-            />
-            <View className='user-detail'>
-              <Text className='user-name'>{user.nickname}</Text>
-              <Text className='user-phone'>{user.phone}</Text>
+    <ScrollView scrollY className='profile-page'>
+      {/* 头部 */}
+      <View className='profile-hero'>
+        {loggedIn && user ? (
+          <View className='profile-user'>
+            <View className='profile-avatar'>{user.nickname?.charAt(0) || user.username.charAt(0)}</View>
+            <View className='profile-user-info'>
+              <Text className='profile-name'>{user.nickname || user.username}</Text>
+              <Text className='profile-role'>{roleLabel} · 企业成员</Text>
             </View>
-            {user.role === 'admin' && (
-              <AtTag size='small' type='primary'>管理员</AtTag>
-            )}
           </View>
         ) : (
-          <View className='login-info' onClick={goToLogin}>
-            <AtAvatar className='user-avatar' circle text='登' />
-            <Text className='login-text'>点击登录</Text>
+          <View className='profile-user' onClick={() => Taro.navigateTo({ url: '/pages/login/index' })}>
+            <View className='profile-avatar guest'>?</View>
+            <View className='profile-user-info'>
+              <Text className='profile-name'>未登录</Text>
+              <Text className='profile-role'>点击登录进入工作台</Text>
+            </View>
           </View>
         )}
       </View>
 
-      <View className='order-stats card'>
-        <Text className='section-title'>我的订单</Text>
-        <View className='stats-row'>
-          <View className='stat-item'>
-            <Text className='stat-num'>{pendingOrders}</Text>
-            <Text className='stat-label'>待处理</Text>
+      {loggedIn && (
+        <>
+          {/* 我的统计 */}
+          <View className='stat-card'>
+            <View className='stat-item'>
+              <Text className='stat-num'>{stats?.total ?? 0}</Text>
+              <Text className='stat-label'>工单总数</Text>
+            </View>
+            <View className='stat-divider' />
+            <View className='stat-item'>
+              <Text className='stat-num orange'>{stats?.myTodos ?? 0}</Text>
+              <Text className='stat-label'>我的待办</Text>
+            </View>
+            <View className='stat-divider' />
+            <View className='stat-item'>
+              <Text className='stat-num green'>{stats?.done ?? 0}</Text>
+              <Text className='stat-label'>已完成</Text>
+            </View>
           </View>
-          <View className='stat-item'>
-            <Text className='stat-num'>{paidOrders}</Text>
-            <Text className='stat-label'>进行中</Text>
-          </View>
-          <View className='stat-item'>
-            <Text className='stat-num'>{completedOrders}</Text>
-            <Text className='stat-label'>已完成</Text>
-          </View>
-        </View>
-      </View>
 
-      <View className='menu-card card'>
-        <AtList>
-          <AtListItem
-            title='我的订单'
-            arrow='right'
-            onClick={() => Taro.showToast({ title: '功能开发中', icon: 'none' })}
-          />
-          <AtListItem
-            title='设备收藏'
-            arrow='right'
-            onClick={() => Taro.showToast({ title: '功能开发中', icon: 'none' })}
-          />
-          <AtListItem
-            title='售后服务'
-            arrow='right'
-            onClick={() => Taro.showToast({ title: '功能开发中', icon: 'none' })}
-          />
-          <AtListItem
-            title='帮助与反馈'
-            arrow='right'
-            onClick={() => Taro.showToast({ title: '功能开发中', icon: 'none' })}
-          />
-          <AtListItem
-            title='关于我们'
-            arrow='right'
-            onClick={() => Taro.showToast({ title: '重工机械设备商城 v1.0.0', icon: 'none' })}
-          />
-        </AtList>
-      </View>
-
-      {isLoggedIn && (
-        <View className='logout-btn'>
-          <AtListItem
-            title='退出登录'
-            onClick={logout}
-          />
-        </View>
+          {/* 我的待办 */}
+          <View className='section'>
+            <View className='section-head'>
+              <Text className='section-title'>我的待办</Text>
+              <Text className='section-more' onClick={() => Taro.switchTab({ url: '/pages/workorder-list/index' })}>全部 ›</Text>
+            </View>
+            {todos.length === 0 ? (
+              <View className='empty'>暂无待办，一切正常</View>
+            ) : (
+              todos.map((t) => (
+                <View key={t.id} className='todo-item' onClick={() => Taro.navigateTo({ url: `/pages/workorder-detail/index?id=${t.id}` })}>
+                  <View className='todo-item-left'>
+                    <Text className='todo-item-status' style={{ color: statusColor(t.status), background: statusBg(t.status) }}>{statusLabel(t.status)}</Text>
+                    <View className='todo-item-body'>
+                      <Text className='todo-item-title'>{t.title}</Text>
+                      <Text className='todo-item-meta'>{typeLabel(t.type)} · {t.machineryName}</Text>
+                    </View>
+                  </View>
+                  <Text className='todo-item-arrow'>›</Text>
+                </View>
+              ))
+            )}
+          </View>
+        </>
       )}
-    </View>
+
+      {/* 功能菜单 */}
+      <View className='section'>
+        <View className='section-head'>
+          <Text className='section-title'>功能入口</Text>
+        </View>
+        <View className='menu-card'>
+          {menuItems.map((m, i) => (
+            <View key={m.label} className={`menu-item ${i === menuItems.length - 1 ? 'menu-last' : ''}`} onClick={m.action}>
+              <Text className='menu-label'>{m.label}</Text>
+              <View className='menu-right'>
+                <Text className='menu-value'>{m.value}</Text>
+                <Text className='menu-arrow'>›</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* 关于 */}
+      <View className='section'>
+        <View className='menu-card'>
+          <View className='menu-item menu-last'>
+            <Text className='menu-label'>版本</Text>
+            <View className='menu-right'>
+              <Text className='menu-value'>v1.1 企业内部版</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {loggedIn && (
+        <View className='logout-btn' onClick={logout}>退出登录</View>
+      )}
+      {!loggedIn && (
+        <View className='logout-btn primary' onClick={() => Taro.navigateTo({ url: '/pages/login/index' })}>立即登录</View>
+      )}
+      <View style={{ height: '40px' }} />
+    </ScrollView>
   )
 }

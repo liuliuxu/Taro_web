@@ -1,43 +1,29 @@
 import { useState } from 'react'
 import Taro from '@tarojs/taro'
-import { View, Text } from '@tarojs/components'
-import { AtInput, AtButton } from 'taro-ui'
+import { View, Text, Input } from '@tarojs/components'
 import { authApi } from '../../services/api'
 import './index.scss'
 
 export default function Login() {
-  const [mode, setMode] = useState<'login' | 'register'>('login')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit() {
-    if (!username || !password) {
+  async function login() {
+    if (!username.trim() || !password) {
       Taro.showToast({ title: '请输入账号和密码', icon: 'none' })
-      return
-    }
-    if (mode === 'register' && !phone) {
-      Taro.showToast({ title: '请输入手机号', icon: 'none' })
       return
     }
     setLoading(true)
     try {
-      if (mode === 'login') {
-        const data = await authApi.login({ username, password })
-        Taro.setStorageSync('token', data.token)
-        Taro.showToast({ title: '登录成功', icon: 'success' })
-      } else {
-        await authApi.register({ username, password, phone })
-        const data = await authApi.login({ username, password })
-        Taro.setStorageSync('token', data.token)
-        Taro.showToast({ title: '注册成功', icon: 'success' })
-      }
+      const res = await authApi.login({ username: username.trim(), password })
+      Taro.setStorageSync('token', res.token)
+      Taro.showToast({ title: '登录成功', icon: 'success' })
       setTimeout(() => {
-        Taro.navigateBack()
-      }, 1500)
-    } catch (error) {
-      console.error(error)
+        Taro.switchTab({ url: '/pages/index/index' })
+      }, 700)
+    } catch (e: any) {
+      Taro.showToast({ title: e?.message || '登录失败', icon: 'none' })
     } finally {
       setLoading(false)
     }
@@ -45,63 +31,32 @@ export default function Login() {
 
   return (
     <View className='login-page'>
-      <View className='login-header'>
-        <Text className='app-name'>重工机械</Text>
-        <Text className='app-desc'>专业重工设备服务平台</Text>
+      <View className='login-hero'>
+        <View className='login-logo'>重</View>
+        <Text className='login-app'>重工设备管理</Text>
+        <Text className='login-slogan'>企业内部 · 设备台账 · 维修闭环</Text>
       </View>
 
       <View className='login-form'>
-        <AtInput
-          name='username'
-          title='账号'
-          type='text'
-          placeholder='请输入账号'
-          value={username}
-          onChange={(v) => setUsername(String(v))}
-        />
-        <AtInput
-          name='password'
-          title='密码'
-          type='password'
-          placeholder='请输入密码'
-          value={password}
-          onChange={(v) => setPassword(String(v))}
-        />
-        {mode === 'register' && (
-          <AtInput
-            name='phone'
-            title='手机号'
-            type='phone'
-            placeholder='请输入手机号'
-            value={phone}
-            onChange={(v) => setPhone(String(v))}
-          />
-        )}
+        <Text className='login-form-title'>账号登录</Text>
 
-        <View className='mode-switch'>
-          <Text
-            className={`mode-link ${mode === 'login' ? 'active' : ''}`}
-            onClick={() => setMode('login')}
-          >
-            登录
-          </Text>
-          <Text className='mode-divider'>|</Text>
-          <Text
-            className={`mode-link ${mode === 'register' ? 'active' : ''}`}
-            onClick={() => setMode('register')}
-          >
-            注册
-          </Text>
+        <View className='field'>
+          <Text className='field-icon'>👤</Text>
+          <Input className='field-input' placeholder='请输入账号' value={username} onInput={(e) => setUsername(e.detail.value)} />
         </View>
 
-        <AtButton
-          type='primary'
-          onClick={handleSubmit}
-          loading={loading}
-          className='submit-btn'
-        >
-          {mode === 'login' ? '登 录' : '注 册'}
-        </AtButton>
+        <View className='field'>
+          <Text className='field-icon'>🔒</Text>
+          <Input className='field-input' password placeholder='请输入密码' value={password} onInput={(e) => setPassword(e.detail.value)} />
+        </View>
+
+        <View className={`login-btn ${loading ? 'login-btn-disabled' : ''}`} onClick={login}>
+          {loading ? '登录中...' : '登 录'}
+        </View>
+
+        <View className='test-accounts'>
+          <Text className='test-tip'>测试账号：admin/admin123 · manager/manager123 · operator/operator123</Text>
+        </View>
       </View>
     </View>
   )

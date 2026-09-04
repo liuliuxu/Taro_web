@@ -1,0 +1,143 @@
+.create-page {
+  height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.create-scroll {
+  flex: 1;
+  height: 100%;
+}
+
+.create-group {
+  background: #fff;
+  margin: 20px 24px 0;
+  border-radius: 22px;
+  padding: 28px;
+  box-shadow: var(--shadow-1);
+}
+
+.group-label {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-1);
+  display: block;
+  margin-bottom: 20px;
+}
+
+.required {
+  color: #F4453A;
+}
+
+.type-row {
+  display: flex;
+  gap: 20px;
+}
+
+.type-chip {
+  flex: 1;
+  height: 88px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-2);
+  background: var(--bg);
+  border: 2px solid transparent;
+}
+
+.type-on-repair {
+  background: #FFF1E8;
+  color: #F2540E;
+  border-color: #FF6B1A;
+}
+
+.type-on-maintain {
+  background: #E7F8F0;
+  color: #0E9F6E;
+  border-color: #0E9F6E;
+}
+
+.picker-box {
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 22px 24px;
+  font-size: 28px;
+  color: var(--text-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.picker-filled {
+  color: var(--text-1);
+  font-weight: 600;
+}
+
+.picker-arrow {
+  color: var(--text-3);
+  font-size: 32px;
+}
+
+.prio-row {
+  display: flex;
+  gap: 16px;
+}
+
+.prio-chip {
+  flex: 1;
+  height: 76px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  color: var(--text-2);
+  background: var(--bg);
+  border: 2px solid transparent;
+}
+
+.prio-on-low { background: #E7F8F0; color: #15803D; border-color: #0E9F6E; font-weight: 700; }
+.prio-on-medium { background: #FEF3E2; color: #92400E; border-color: #F59E0B; font-weight: 700; }
+.prio-on-high { background: #FFF7E6; color: #B45309; border-color: #EA580C; font-weight: 700; }
+.prio-on-urgent { background: #FDECEC; color: #F4453A; border-color: #F4453A; font-weight: 700; }
+
+.text-input {
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 22px 24px;
+  font-size: 28px;
+}
+
+.text-area {
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 22px 24px;
+  font-size: 28px;
+  width: 100%;
+  height: 220px;
+  box-sizing: border-box;
+}
+
+.create-footer {
+  padding: 20px 24px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  background: #fff;
+  box-shadow: 0 -6px 20px rgba(22, 40, 59, 0.06);
+}
+
+.submit-btn {
+  height: 92px;
+  border-radius: 46px;
+  background: linear-gradient(135deg, #FF8A3D, #F2540E);
+  color: #fff;
+  font-size: 30px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(242, 84, 14, 0.35);
+}

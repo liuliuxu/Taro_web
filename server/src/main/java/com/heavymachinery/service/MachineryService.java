@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface MachineryService {
 
-    PageResult<MachineryVO> list(int page, int pageSize, String category, String keyword, String status);
+    PageResult<MachineryVO> list(int page, int pageSize, String category, String keyword, String status, String sort);
 
     MachineryVO getDetail(Long id);
 

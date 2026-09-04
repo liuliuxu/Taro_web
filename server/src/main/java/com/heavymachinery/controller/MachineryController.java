@@ -27,8 +27,9 @@ public class MachineryController {
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String status) {
-        return ApiResponse.success(machineryService.list(page, pageSize, category, keyword, status));
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String sort) {
+        return ApiResponse.success(machineryService.list(page, pageSize, category, keyword, status, sort));
     }
 
     @GetMapping("/categories")

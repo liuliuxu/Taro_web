@@ -1,197 +1,127 @@
-import { useState, useEffect } from 'react'
-import Taro, { useLoad, useRouter, useReachBottom } from '@tarojs/taro'
-import { View, Text } from '@tarojs/components'
-import { AtSearchBar, AtTag, AtFloatLayout, AtRadio, AtLoadMore } from 'taro-ui'
+import { useState } from 'react'
+import Taro, { useDidShow, useRouter } from '@tarojs/taro'
+import { View, Text, Input, ScrollView } from '@tarojs/components'
 import { machineryApi } from '../../services/api'
 import type { Machinery } from '../../types'
+import { getCategoryTheme } from '../../utils/deviceVisual'
 import './index.scss'
+
+const CATEGORIES = ['全部', '挖掘机', '装载机', '破碎锤', '自卸车', '泵车', '塔吊', '推土机', '压路机', '钻机']
 
 export default function DeviceList() {
   const router = useRouter()
   const [list, setList] = useState<Machinery[]>([])
-  const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
   const [keyword, setKeyword] = useState('')
-  const [searchKeyword, setSearchKeyword] = useState('')
-  const [category, setCategory] = useState('')
-  const [showFilter, setShowFilter] = useState(false)
-  const [sortBy, setSortBy] = useState('default')
-  const [status, setStatus] = useState('')
+  const [category, setCategory] = useState((router.params.category as string) || '全部')
   const [loading, setLoading] = useState(false)
+  const [pageSize] = useState(10)
 
-  useLoad(() => {
-    const { keyword: kw, category: cat } = router.params
-    if (kw) {
-      setKeyword(decodeURIComponent(kw))
-      setSearchKeyword(decodeURIComponent(kw))
-    }
-    if (cat) {
-      setCategory(decodeURIComponent(cat))
-    }
+  useDidShow(() => {
+    load(1)
   })
 
-  useEffect(() => {
-    setList([])
-    setPage(1)
-    fetchList(1)
-  }, [category])
-
-  useReachBottom(() => {
-    if (!loading && list.length < total) {
-      const nextPage = page + 1
-      setPage(nextPage)
-      fetchList(nextPage)
-    }
-  })
-
-  async function fetchList(p: number) {
+  async function load(p: number, kw?: string, cat?: string) {
     setLoading(true)
     try {
-      const result = await machineryApi.getList({
-        page: p,
-        pageSize: 10,
-        category: category || undefined,
-        keyword: searchKeyword || undefined,
-        status: status || undefined
-      })
-      setTotal(result.total)
-      setList((prev) => (p === 1 ? result.list : [...prev, ...result.list]))
-    } catch (error) {
-      console.error(error)
+      const params: any = { page: p, pageSize }
+      const k = kw !== undefined ? kw : keyword
+      const c = cat !== undefined ? cat : category
+      if (k) params.keyword = k
+      if (c && c !== '全部') params.category = c
+      const res = await machineryApi.getList(params)
+      setPage(p)
+      setTotal(res.total)
+      setList(p === 1 ? res.list : [...list, ...res.list])
+    } catch (e) {
+      Taro.showToast({ title: '加载失败', icon: 'none' })
     } finally {
       setLoading(false)
     }
   }
 
-  function onSearch() {
-    setList([])
-    setPage(1)
-    setSearchKeyword(keyword)
-    fetchList(1)
+  function onSearch(v: string) {
+    setKeyword(v)
+    load(1, v)
   }
 
-  function onFilterConfirm() {
-    setShowFilter(false)
-    setList([])
-    setPage(1)
-    fetchList(1)
+  function onCategory(c: string) {
+    setCategory(c)
+    load(1, undefined, c)
   }
 
-  function goToDetail(id: number) {
+  function goDetail(id: number) {
     Taro.navigateTo({ url: `/pages/device-detail/index?id=${id}` })
   }
 
-  const sortOptions = [
-    { label: '默认排序', value: 'default' },
-    { label: '价格从低到高', value: 'price_asc' },
-    { label: '价格从高到低', value: 'price_desc' }
-  ]
+  function onReachBottom() {
+    if (loading || list.length >= total) return
+    load(page + 1)
+  }
 
-  const statusOptions = [
-    { label: '全部状态', value: '' },
-    { label: '可购买', value: 'available' },
-    { label: '已租赁', value: 'rented' },
-    { label: '维护中', value: 'maintenance' }
-  ]
+  const statusMap: Record<string, string> = {
+    available: '在册',
+    rented: '外派中',
+    maintenance: '维修中'
+  }
 
   return (
-    <View className='device-list-page'>
-      <View className='search-wrap'>
-        <AtSearchBar
+    <View className='device-list'>
+      <View className='search-bar'>
+        <Input
+          className='search-input'
+          placeholder='搜索设备名称 / 型号 / 品牌'
           value={keyword}
-          onChange={(v) => setKeyword(v)}
-          onActionClick={onSearch}
-          onConfirm={onSearch}
-          placeholder='搜索设备'
-          showActionButton
-        />
-        <View
-          className='filter-btn'
-          onClick={() => setShowFilter(true)}
-        >
-          <Text>筛选</Text>
-        </View>
-      </View>
-
-      <View className='list-wrapper'>
-        {list.map((item) => (
-          <View
-            key={item.id}
-            className='device-card'
-            onClick={() => goToDetail(item.id)}
-          >
-            <View className='device-image-placeholder'>
-              <Text className='device-image-text'>{item.name.charAt(0)}</Text>
-            </View>
-            <View className='device-info'>
-              <Text className='device-name'>{item.name}</Text>
-              <View className='device-tags'>
-                <AtTag size='small' type='primary'>型号：{item.model}</AtTag>
-                <AtTag size='small' type='default'>{item.category}</AtTag>
-              </View>
-              <View className='device-specs'>
-                <Text className='spec-item'>额定功率：{item.specs.power}</Text>
-                <Text className='spec-item'>整机重量：{item.specs.weight}</Text>
-              </View>
-              <View className='device-footer'>
-                <Text className='device-price'>¥{item.price}万</Text>
-                <Text
-                  className={`status-tag status-${item.status}`}
-                >
-                  {item.status === 'available' ? '可购买' : item.status === 'rented' ? '已租赁' : '维护中'}
-                </Text>
-              </View>
-            </View>
-          </View>
-        ))}
-        <AtLoadMore
-          status={loading ? 'loading' : list.length >= total && list.length > 0 ? 'noMore' : 'more'}
+          onInput={(e) => onSearch(e.detail.value)}
+          confirmType='search'
         />
       </View>
 
-      <AtFloatLayout
-        isOpened={showFilter}
-        title='筛选'
-        onClose={() => setShowFilter(false)}
-      >
-        <View className='filter-content'>
-          <View className='filter-section'>
-            <Text className='filter-label'>排序方式</Text>
-            <AtRadio
-              options={sortOptions}
-              value={sortBy}
-              onClick={(v) => setSortBy(v)}
-            />
-          </View>
-          <View className='filter-section'>
-            <Text className='filter-label'>设备状态</Text>
-            <AtRadio
-              options={statusOptions}
-              value={status}
-              onClick={(v) => setStatus(v)}
-            />
-          </View>
-          <View className='filter-actions'>
-            <AtButton
-              type='secondary'
-              size='small'
-              onClick={() => {
-                setSortBy('default')
-                setStatus('')
-              }}
+      <ScrollView scrollX className='cat-scroll' showScrollbar={false}>
+        <View className='cat-row'>
+          {CATEGORIES.map((c) => (
+            <View
+              key={c}
+              className={`cat-chip ${category === c ? 'cat-chip-on' : ''}`}
+              onClick={() => onCategory(c)}
             >
-              重置
-            </AtButton>
-            <AtButton
-              type='primary'
-              size='small'
-              onClick={onFilterConfirm}
-            >
-              确定
-            </AtButton>
-          </View>
+              {c}
+            </View>
+          ))}
         </View>
-      </AtFloatLayout>
+      </ScrollView>
+
+      <ScrollView scrollY className='device-scroll' onScrollToLower={onReachBottom}>
+        <View className='count-line'>共 {total} 台设备</View>
+        {list.map((m) => {
+          const theme = getCategoryTheme(m.category)
+          return (
+            <View key={m.id} className='device-card' hoverClass='device-hover' onClick={() => goDetail(m.id)}>
+              <View className='device-thumb' style={{ background: `linear-gradient(135deg, ${theme.from}, ${theme.to})` }}>
+                <Text className='device-thumb-icon'>{theme.icon}</Text>
+              </View>
+              <View className='device-info'>
+                <View className='device-info-top'>
+                  <Text className='device-name'>{m.name}</Text>
+                  <Text className='device-status'>{statusMap[m.status] || m.status}</Text>
+                </View>
+                <Text className='device-model'>{m.brand} · {m.model} · {m.category}</Text>
+                <View className='device-specs'>
+                  <Text className='spec'>自重 {m.specs?.weight || '-'}t</Text>
+                  <Text className='spec'>功率 {m.specs?.power || '-'}kW</Text>
+                  <Text className='spec'>容量 {m.specs?.capacity || '-'}</Text>
+                </View>
+              </View>
+            </View>
+          )
+        })}
+        {loading && <View className='load-tip'>加载中...</View>}
+        {!loading && list.length > 0 && list.length >= total && (
+          <View className='load-tip'>— 已全部加载 —</View>
+        )}
+        {!loading && list.length === 0 && <View className='load-tip'>暂无设备</View>}
+      </ScrollView>
     </View>
   )
 }

@@ -1,57 +1,53 @@
+/*
+ * 全局设计系统 - 工业重工主题
+ * 品牌色: 深墨蓝 + 工程橙
+ */
 :root {
-  --color-primary: #4A90D9;
-  --color-primary-light: #6BA6E3;
-  --color-primary-dark: #3572B8;
-  --color-black: #333333;
-  --color-grey: #999999;
-  --color-light-grey: #F5F5F5;
-  --color-white: #ffffff;
-  --color-orange: #FF8A3D;
-  --color-red: #E64340;
-  --color-green: #09BB07;
+  --ink: #16283B;            /* 主深墨蓝 */
+  --ink-2: #223B55;
+  --ink-3: #33506F;
+  --orange: #FF6B1A;         /* 工程橙 - 主视觉 */
+  --orange-deep: #F2540E;
+  --orange-soft: #FFF1E8;
+  --amber: #FFB03A;
+
+  --bg: #F3F5F7;             /* 页面背景 */
+  --card: #FFFFFF;
+  --line: #ECEFF3;
+  --border: #ECEEF2;
+
+  --text-1: #16283B;
+  --text-2: #5B6B7B;
+  --text-3: #98A5B3;
+
+  --green: #1FBA6B;
+  --red: #F4453A;
+  --shadow-1: 0 6px 20px rgba(22, 40, 59, 0.06);
+  --shadow-2: 0 10px 30px rgba(22, 40, 59, 0.10);
+
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
 }
 
 page {
-  background: #F7F8FA;
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  color: #333333;
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  color: var(--text-1);
   font-size: 28px;
-  line-height: 1.6;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-.container {
-  padding: 20px;
-}
-
-.card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-}
-
-.text-primary {
-  color: var(--color-primary);
-}
-
-.text-grey {
-  color: var(--color-grey);
-}
-
-.text-bold {
-  font-weight: bold;
-}
-
-.flex-row {
+/* 通用工具类 */
+.flex {
   display: flex;
-  flex-direction: row;
   align-items: center;
 }
 
 .flex-between {
   display: flex;
-  flex-direction: row;
   align-items: center;
   justify-content: space-between;
 }
@@ -60,4 +56,35 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 状态标签通用样式 */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 20px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.status-pill--available {
+  color: #0E9F6E;
+  background: #E7F8F0;
+}
+
+.status-pill--rented {
+  color: #D97706;
+  background: #FEF3E2;
+}
+
+.status-pill--maintenance {
+  color: #8A97A6;
+  background: #EEF1F4;
 }

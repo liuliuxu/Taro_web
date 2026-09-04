@@ -28,8 +28,16 @@ public class MachineryServiceImpl implements MachineryService {
     }
 
     @Override
-    public PageResult<MachineryVO> list(int page, int pageSize, String category, String keyword, String status) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.DESC, "recommended").and(Sort.by("createdAt").descending()));
+    public PageResult<MachineryVO> list(int page, int pageSize, String category, String keyword, String status, String sort) {
+        Sort sortSpec;
+        if ("price_asc".equals(sort)) {
+            sortSpec = Sort.by(Sort.Direction.ASC, "price");
+        } else if ("price_desc".equals(sort)) {
+            sortSpec = Sort.by(Sort.Direction.DESC, "price");
+        } else {
+            sortSpec = Sort.by(Sort.Direction.DESC, "recommended").and(Sort.by("createdAt").descending());
+        }
+        Pageable pageable = PageRequest.of(page - 1, pageSize, sortSpec);
 
         Specification<Machinery> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();

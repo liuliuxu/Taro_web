@@ -2,25 +2,28 @@ export default defineAppConfig({
   pages: [
     'pages/index/index',
     'pages/device-list/index',
-    'pages/device-detail/index',
+    'pages/workorder-list/index',
     'pages/profile/index',
+    'pages/device-detail/index',
+    'pages/workorder-detail/index',
+    'pages/workorder-create/index',
     'pages/login/index'
   ],
   window: {
     backgroundTextStyle: 'light',
-    navigationBarBackgroundColor: '#4A90D9',
-    navigationBarTitleText: '重工机械',
+    navigationBarBackgroundColor: '#16283B',
+    navigationBarTitleText: '设备管理',
     navigationBarTextStyle: 'white'
   },
   tabBar: {
-    color: '#999999',
-    selectedColor: '#4A90D9',
+    color: '#9AA5B1',
+    selectedColor: '#FF6B1A',
     backgroundColor: '#ffffff',
     borderStyle: 'black',
     list: [
       {
         pagePath: 'pages/index/index',
-        text: '首页',
+        text: '工作台',
         iconPath: 'assets/icons/home.png',
         selectedIconPath: 'assets/icons/home-active.png'
       },
@@ -31,16 +34,17 @@ export default defineAppConfig({
         selectedIconPath: 'assets/icons/device-active.png'
       },
       {
+        pagePath: 'pages/workorder-list/index',
+        text: '工单',
+        iconPath: 'assets/icons/order.png',
+        selectedIconPath: 'assets/icons/order-active.png'
+      },
+      {
         pagePath: 'pages/profile/index',
         text: '我的',
         iconPath: 'assets/icons/profile.png',
         selectedIconPath: 'assets/icons/profile-active.png'
       }
     ]
-  },
-  permission: {
-    'scope.userLocation': {
-      desc: '你的位置信息将用于查找附近的设备门店'
-    }
   }
 })

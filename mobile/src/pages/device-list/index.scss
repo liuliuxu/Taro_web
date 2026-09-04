@@ -1,140 +1,146 @@
-.device-list-page {
-  min-height: 100vh;
-}
-
-.search-wrap {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+.device-list {
   display: flex;
-  align-items: center;
-  background: #ffffff;
-  padding: 16px 20px;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg);
 }
 
-.filter-btn {
-  flex-shrink: 0;
-  margin-left: 16px;
-  padding: 10px 24px;
-  background: #F5F7FA;
-  border-radius: 8px;
+.search-bar {
+  padding: 20px 24px 12px;
+}
+
+.search-input {
+  background: #fff;
+  border-radius: 40px;
+  padding: 18px 30px;
   font-size: 26px;
-  color: #333;
+  box-shadow: var(--shadow-1);
 }
 
-.list-wrapper {
-  padding: 8px 20px 40px;
+.cat-scroll {
+  white-space: nowrap;
+  padding: 10px 24px 16px;
+}
+
+.cat-row {
+  display: inline-flex;
+  gap: 16px;
+}
+
+.cat-chip {
+  display: inline-block;
+  padding: 12px 30px;
+  background: #fff;
+  color: var(--text-2);
+  border-radius: 40px;
+  font-size: 26px;
+  box-shadow: var(--shadow-1);
+}
+
+.cat-chip-on {
+  background: linear-gradient(135deg, #FF8A3D, #FF6B1A);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(255, 107, 26, 0.35);
+}
+
+.device-scroll {
+  flex: 1;
+  padding: 0 24px;
+  height: 100%;
+}
+
+.count-line {
+  font-size: 24px;
+  color: var(--text-3);
+  padding: 6px 4px 16px;
 }
 
 .device-card {
-  display: flex;
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 20px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 22px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  display: flex;
+  gap: 20px;
+  box-shadow: var(--shadow-1);
 }
 
-.device-image-placeholder {
-  width: 160px;
-  height: 160px;
-  background: linear-gradient(135deg, #E8F0FA, #D4E3F5);
-  border-radius: 12px;
+.device-hover {
+  transform: scale(0.99);
+  background: #FAFBFC;
+}
+
+.device-thumb {
+  width: 128px;
+  height: 128px;
+  border-radius: 18px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20px;
-  flex-shrink: 0;
 }
 
-.device-image-text {
-  font-size: 56px;
-  font-weight: bold;
-  color: #4A90D9;
+.device-thumb-icon {
+  color: #fff;
+  font-size: 52px;
+  font-weight: 800;
 }
 
 .device-info {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 8px;
+}
+
+.device-info-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .device-name {
   font-size: 30px;
-  font-weight: bold;
-  color: #333;
+  font-weight: 700;
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.device-tags {
-  display: flex;
-  gap: 10px;
-  margin: 8px 0;
+.device-status {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: #0E9F6E;
+  background: #E7F8F0;
+  padding: 4px 16px;
+  border-radius: 20px;
+}
+
+.device-model {
+  font-size: 24px;
+  color: var(--text-3);
 }
 
 .device-specs {
   display: flex;
+  gap: 8px;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 8px;
 }
 
-.spec-item {
-  font-size: 22px;
-  color: #999;
+.spec {
+  font-size: 20px;
+  color: var(--ink);
+  background: var(--bg);
+  padding: 4px 14px;
+  border-radius: 12px;
 }
 
-.device-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.device-price {
-  color: #E64340;
-  font-size: 32px;
-  font-weight: bold;
-}
-
-.status-tag {
-  font-size: 22px;
-  padding: 4px 12px;
-  border-radius: 20px;
-}
-
-.status-available {
-  color: #09BB07;
-  background: rgba(9, 187, 7, 0.1);
-}
-
-.status-rented {
-  color: #FF8A3D;
-  background: rgba(255, 138, 61, 0.1);
-}
-
-.status-maintenance {
-  color: #999;
-  background: rgba(153, 153, 153, 0.1);
-}
-
-.filter-content {
-  padding: 20px 40px 40px;
-}
-
-.filter-section {
-  margin-bottom: 30px;
-}
-
-.filter-label {
-  font-size: 28px;
-  font-weight: bold;
-  color: #333;
-  display: block;
-  margin-bottom: 16px;
-}
-
-.filter-actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
+.load-tip {
+  text-align: center;
+  color: var(--text-3);
+  font-size: 24px;
+  padding: 24px 0;
 }

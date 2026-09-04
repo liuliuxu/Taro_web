@@ -1,0 +1,140 @@
+.device-list-page {
+  min-height: 100vh;
+}
+
+.search-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  padding: 16px 20px;
+}
+
+.filter-btn {
+  flex-shrink: 0;
+  margin-left: 16px;
+  padding: 10px 24px;
+  background: #F5F7FA;
+  border-radius: 8px;
+  font-size: 26px;
+  color: #333;
+}
+
+.list-wrapper {
+  padding: 8px 20px 40px;
+}
+
+.device-card {
+  display: flex;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.device-image-placeholder {
+  width: 160px;
+  height: 160px;
+  background: linear-gradient(135deg, #E8F0FA, #D4E3F5);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  flex-shrink: 0;
+}
+
+.device-image-text {
+  font-size: 56px;
+  font-weight: bold;
+  color: #4A90D9;
+}
+
+.device-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.device-name {
+  font-size: 30px;
+  font-weight: bold;
+  color: #333;
+}
+
+.device-tags {
+  display: flex;
+  gap: 10px;
+  margin: 8px 0;
+}
+
+.device-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.spec-item {
+  font-size: 22px;
+  color: #999;
+}
+
+.device-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.device-price {
+  color: #E64340;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.status-tag {
+  font-size: 22px;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.status-available {
+  color: #09BB07;
+  background: rgba(9, 187, 7, 0.1);
+}
+
+.status-rented {
+  color: #FF8A3D;
+  background: rgba(255, 138, 61, 0.1);
+}
+
+.status-maintenance {
+  color: #999;
+  background: rgba(153, 153, 153, 0.1);
+}
+
+.filter-content {
+  padding: 20px 40px 40px;
+}
+
+.filter-section {
+  margin-bottom: 30px;
+}
+
+.filter-label {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}

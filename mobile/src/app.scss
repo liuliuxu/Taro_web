@@ -1,0 +1,63 @@
+:root {
+  --color-primary: #4A90D9;
+  --color-primary-light: #6BA6E3;
+  --color-primary-dark: #3572B8;
+  --color-black: #333333;
+  --color-grey: #999999;
+  --color-light-grey: #F5F5F5;
+  --color-white: #ffffff;
+  --color-orange: #FF8A3D;
+  --color-red: #E64340;
+  --color-green: #09BB07;
+}
+
+page {
+  background: #F7F8FA;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: #333333;
+  font-size: 28px;
+  line-height: 1.6;
+}
+
+.container {
+  padding: 20px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-grey {
+  color: var(--color-grey);
+}
+
+.text-bold {
+  font-weight: bold;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

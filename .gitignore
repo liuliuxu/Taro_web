@@ -1,0 +1,26 @@
+# ---- 移动端 (Taro) ----
+node_modules/
+dist/
+.temp/
+.rn_temp/
+.cache/
+lib/
+*.log
+.swc/
+
+# ---- 后端 (Spring Boot) ----
+server/target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# ---- IDE / 系统 ----
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# ---- 环境/密钥 ----
+.env
+.env.*
+*.local

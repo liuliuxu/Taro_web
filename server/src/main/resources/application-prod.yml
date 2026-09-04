@@ -1,0 +1,21 @@
+# 生产环境配置示例。部署时通过环境变量指定 profile: --spring.profiles.active=prod
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/heavymachinery?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  h2:
+    console:
+      enabled: false
+
+jwt:
+  secret: ${JWT_SECRET:please-change-this-secret-key-at-least-32-chars-long-123456}
+  expiration: ${JWT_EXPIRATION:86400000}

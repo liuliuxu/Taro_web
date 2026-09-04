@@ -1,0 +1,161 @@
+.index-page {
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+.header {
+  background: linear-gradient(135deg, #4A90D9, #3572B8);
+  padding: 20px 24px 60px;
+}
+
+.banner {
+  height: 300px;
+  margin: -30px 20px 20px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.banner-item {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px;
+}
+
+.banner-1 {
+  background: linear-gradient(135deg, #3572B8, #4A90D9);
+}
+
+.banner-2 {
+  background: linear-gradient(135deg, #FF8A3D, #FF6B3D);
+}
+
+.banner-3 {
+  background: linear-gradient(135deg, #12C2A8, #09BB07);
+}
+
+.banner-title {
+  color: #ffffff;
+  font-size: 44px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.banner-subtitle {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 26px;
+}
+
+.category-section {
+  margin: 0 20px 20px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 32px;
+  font-weight: bold;
+  color: #333;
+}
+
+.section-more {
+  font-size: 24px;
+  color: #999;
+}
+
+.category-scroll {
+  white-space: nowrap;
+}
+
+.category-list {
+  display: inline-flex;
+  gap: 16px;
+}
+
+.category-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 28px;
+  background: #F5F7FA;
+  border-radius: 30px;
+  font-size: 26px;
+  color: #666;
+}
+
+.category-item.active {
+  background: #4A90D9;
+  color: #ffffff;
+}
+
+.recommend-section {
+  padding: 0 20px;
+}
+
+.device-card {
+  display: flex;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+.device-image-placeholder {
+  width: 160px;
+  height: 160px;
+  background: linear-gradient(135deg, #E8F0FA, #D4E3F5);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  flex-shrink: 0;
+}
+
+.device-image-text {
+  font-size: 56px;
+  font-weight: bold;
+  color: #4A90D9;
+}
+
+.device-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.device-name {
+  font-size: 32px;
+  font-weight: bold;
+  color: #333;
+}
+
+.device-tags {
+  display: flex;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.device-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.device-price {
+  color: #E64340;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.device-stock {
+  font-size: 22px;
+  color: #999;
+}

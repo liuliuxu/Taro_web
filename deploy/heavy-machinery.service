@@ -1,0 +1,29 @@
+# 重工机械后端服务 - systemd 单元
+# 放到服务器 /etc/systemd/system/heavy-machinery.service 后执行：
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable heavy-machinery
+#   sudo systemctl start heavy-machinery
+
+[Unit]
+Description=Heavy Machinery Backend (Spring Boot)
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/data/www/heavy-machinery/server
+ExecStart=/usr/bin/java -jar /data/www/heavy-machinery/server/heavy-machinery-server-1.0.0.jar --spring.profiles.active=prod
+# 生产数据库连接（请按实际修改，或用独立的 application-prod-xxx.yml）
+Environment=DB_URL=jdbc:mysql://127.0.0.1:3306/heavymachinery?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+Environment=DB_USERNAME=heavy
+Environment=DB_PASSWORD=CHANGE_ME
+Environment=JWT_SECRET=CHANGE_ME_STRONG_RANDOM_SECRET_KEY_AT_LEAST_32_CHARS
+Restart=on-failure
+RestartSec=10
+# 端口 8081
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

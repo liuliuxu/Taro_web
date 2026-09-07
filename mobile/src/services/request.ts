@@ -45,7 +45,7 @@ export async function request<T>(options: RequestOptions): Promise<T> {
 
     if (result.code === 401) {
       Taro.removeStorageSync('token')
-      Taro.navigateTo({ url: '/pages/login/index' })
+      Taro.redirectTo({ url: '/pages/login/index' })
       throw new Error('登录已过期，请重新登录')
     }
 

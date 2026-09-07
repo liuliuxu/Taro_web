@@ -239,7 +239,7 @@ export default function ApprovalCreate() {
             {fields.map(renderField)}
 
             <View className='ac-submit' onClick={submit}>
-              {submitLoading ? '提交中...' : '提交审批'}
+              <Text className='ac-submit-text'>{submitLoading ? '提交中...' : '提交审批'}</Text>
             </View>
             <View style={{ height: 40 }} />
           </>

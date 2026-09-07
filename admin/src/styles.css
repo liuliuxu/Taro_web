@@ -127,9 +127,8 @@ body {
 .login-wrap {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(160deg, #16283B 0%, #1E3A55 55%, #2C5A7F 100%);
+  align-items: stretch;
+  background: var(--hm-bg, #F0F2F5);
 }
 
 .login-card {

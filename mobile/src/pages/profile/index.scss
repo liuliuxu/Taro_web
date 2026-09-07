@@ -272,3 +272,97 @@
   color: #fff;
   box-shadow: 0 8px 20px rgba(242, 84, 14, 0.35);
 }
+
+/* 我的资料合并卡片 */
+.section:has(.profile-info-card) {
+  cursor: pointer;
+}
+
+.section:has(.profile-info-card):active {
+  opacity: 0.85;
+}
+
+.profile-info-card {
+  background: #fff;
+  border-radius: 22px;
+  padding: 24px 26px;
+  box-shadow: var(--shadow-1);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-info-main {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-info-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF8A3D, #FF6B1A);
+  color: #fff;
+  font-size: 34px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(255, 107, 26, 0.35);
+  flex-shrink: 0;
+}
+
+.profile-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.profile-info-name {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.profile-info-role {
+  font-size: 22px;
+  color: var(--orange);
+  font-weight: 600;
+}
+
+.profile-info-phone {
+  font-size: 22px;
+  color: var(--text-3);
+}
+
+.profile-info-stats {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  gap: 12px;
+}
+
+.profile-info-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 0;
+  background: var(--bg);
+  border-radius: 16px;
+}
+
+.profile-info-stat-label {
+  font-size: 20px;
+  color: var(--text-3);
+}
+
+.profile-info-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-1);
+}

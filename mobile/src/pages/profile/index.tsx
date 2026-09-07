@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { View, Text, ScrollView } from '@tarojs/components'
-import { authApi, workOrderApi, machineryApi } from '../../services/api'
-import type { User, WorkOrder } from '../../types'
-import { statusLabel, statusColor, statusBg, typeLabel } from '../../utils/workOrderMeta'
+import { authApi, workOrderApi } from '../../services/api'
+import type { User } from '../../types'
 import { applyTheme } from '../../app'
 import './index.scss'
 
@@ -28,11 +27,10 @@ export default function Profile() {
   // 默认用户防止渲染时 user 为 null
   const defaultUser: User = {
     id: 0, username: '游客', nickname: '游客', phone: '', email: '', role: 'customer',
-    avatar: '', createdAt: ''
+    avatar: '', createdAt: '', hireDate: '', workYears: 0, annualLeave: 0, compensatoryLeave: 0, overtime: 0
   }
   const safeUser = user || defaultUser
   const [stats, setStats] = useState<any>(null)
-  const [todos, setTodos] = useState<WorkOrder[]>([])
 
   useDidShow(() => {
     const token = Taro.getStorageSync('token')
@@ -61,17 +59,14 @@ export default function Profile() {
     try {
       setStats(await workOrderApi.getStats())
     } catch (e) { /* ignore */ }
-    try {
-      setTodos((await workOrderApi.getMyTodos()).slice(0, 3))
-    } catch (e) { /* ignore */ }
   }
 
   const roleLabel = user && user.role
-  ? user.role === 'admin' ? '管理员'
-    : user.role === 'manager' ? '设备负责人'
-    : user.role === 'operator' ? '作业人员'
+    ? user.role === 'admin' ? '管理员'
+      : user.role === 'manager' ? '设备负责人'
+      : user.role === 'operator' ? '作业人员'
+      : '成员'
     : '成员'
-  : '成员'
 
   function logout() {
     Taro.showModal({
@@ -83,6 +78,9 @@ export default function Profile() {
           setLoggedIn(false)
           setUser(null)
           Taro.showToast({ title: '已退出', icon: 'none' })
+          setTimeout(() => {
+            Taro.reLaunch({ url: '/pages/login/index' })
+          }, 500)
         }
       }
     })
@@ -107,19 +105,10 @@ export default function Profile() {
     Taro.showToast({ title: '主题已切换', icon: 'none' })
   }
 
-  const menuItems = [
-    { label: '设备台账', value: '查看全部设备', action: () => Taro.switchTab({ url: '/pages/device-list/index' }) },
-    { label: '工单管理', value: '报修 / 派单 / 处理', action: () => Taro.switchTab({ url: '/pages/workorder-list/index' }) },
-    { label: '新建工单', value: '发起报修或保养', action: () => Taro.navigateTo({ url: '/pages/workorder-create/index' }) },
-    { label: '工程项目', value: '立项 / 进度 / 调度', action: () => Taro.navigateTo({ url: '/pages/project-list/index' }) },
-    { label: '我的任务', value: '派发给我的调度任务', action: () => Taro.navigateTo({ url: '/pages/task-list/index' }) },
-    { label: '租赁管理', value: '租赁合同 / 登记归还', action: () => Taro.navigateTo({ url: '/pages/rental-list/index' }) },
-    { label: '审批中心', value: '审批 / 待办 / 动态表单', action: () => Taro.navigateTo({ url: '/pages/approval-list/index' }) },
-    { label: '公告通知', value: '企业公告与通知', action: () => Taro.navigateTo({ url: '/pages/announcement-list/index' }) },
-    { label: '巡检保养', value: '我的巡检 / 保养任务', action: () => Taro.navigateTo({ url: '/pages/inspect-list/index' }) },
-    { label: '备件查询', value: '备件物料库存', action: () => Taro.navigateTo({ url: '/pages/spare-part-list/index' }) },
-    { label: '采购申请', value: '发起采购 / 查看进度', action: () => Taro.navigateTo({ url: '/pages/purchase-list/index' }) }
-  ]
+  // 跳转到编辑资料页
+  function goEditProfile() {
+    Taro.navigateTo({ url: '/pages/edit-profile/index' })
+  }
 
   return (
     <ScrollView scrollY className='profile-page'>
@@ -164,129 +153,92 @@ export default function Profile() {
             </View>
           </View>
 
-          {/* 我的资料 */}
-          <View className='section'>
+          {/* 我的资料 - 合并为单卡片，点击跳转详情页 */}
+          <View className='section' onClick={goEditProfile}>
             <View className='section-head flex-between'>
               <Text className='section-title'>我的资料</Text>
-              <Text className='section-more' onClick={() => Taro.navigateTo({ url: '/pages/edit-profile/index' })}>编辑 ›</Text>
+              <Text className='section-more'>查看详情 ›</Text>
             </View>
-            <View className='menu-card'>
-              <View className='menu-item'><Text className='menu-label'>手机号</Text>
-                <View className='menu-right'><Text className='menu-value'>{user?.phone || '—'}</Text></View>
+            <View className='profile-info-card'>
+              <View className='profile-info-main'>
+                <View className='profile-info-avatar'>{user.nickname?.charAt(0) || user.username.charAt(0)}</View>
+                <View className='profile-info-text'>
+                  <Text className='profile-info-name'>{user.nickname || user.username}</Text>
+                  <Text className='profile-info-role'>{roleLabel}</Text>
+                  <Text className='profile-info-phone'>{user?.phone || '未填写手机号'}</Text>
+                </View>
               </View>
-              <View className='menu-item'><Text className='menu-label'>邮箱</Text>
-                <View className='menu-right'><Text className='menu-value'>{user?.email || '—'}</Text></View>
-              </View>
-              <View className='menu-item'><Text className='menu-label'>入职日期</Text>
-                <View className='menu-right'><Text className='menu-value'>{user?.hireDate || '—'}</Text></View>
-              </View>
-              <View className='menu-item'><Text className='menu-label'>工作年限</Text>
-                <View className='menu-right'><Text className='menu-value'>{user?.workYears != null ? `${user?.workYears} 年` : '—'}</Text></View>
-              </View>
-              <View className='menu-item'><Text className='menu-label'>年假余额</Text>
-                <View className='menu-right'><Text className='menu-value'>{user?.annualLeave != null ? `${user?.annualLeave} 天` : '—'}</Text></View>
-              </View>
-              <View className='menu-item'><Text className='menu-label'>调休余额</Text>
-                <View className='menu-right'><Text className='menu-value'>{user?.compensatoryLeave != null ? `${user?.compensatoryLeave} 小时` : '—'}</Text></View>
-              </View>
-              <View className='menu-item menu-last'><Text className='menu-label'>本月加班</Text>
-                <View className='menu-right'><Text className='menu-value'>{user?.overtime != null ? `${user?.overtime} 小时` : '—'}</Text></View>
+              <View className='profile-info-stats'>
+                <View className='profile-info-stat'>
+                  <Text className='profile-info-stat-label'>工龄</Text>
+                  <Text className='profile-info-stat-value'>{user?.workYears != null ? `${user?.workYears} 年` : '—'}</Text>
+                </View>
+                <View className='profile-info-stat'>
+                  <Text className='profile-info-stat-label'>年假</Text>
+                  <Text className='profile-info-stat-value'>{user?.annualLeave != null ? `${user?.annualLeave} 天` : '—'}</Text>
+                </View>
+                <View className='profile-info-stat'>
+                  <Text className='profile-info-stat-label'>调休</Text>
+                  <Text className='profile-info-stat-value'>{user?.compensatoryLeave != null ? `${user?.compensatoryLeave} 小时` : '—'}</Text>
+                </View>
+                <View className='profile-info-stat'>
+                  <Text className='profile-info-stat-label'>加班</Text>
+                  <Text className='profile-info-stat-value'>{user?.overtime != null ? `${user?.overtime} 小时` : '—'}</Text>
+                </View>
               </View>
             </View>
           </View>
 
-          {/* 我的待办 */}
+          {/* 主题设置 */}
           <View className='section'>
             <View className='section-head'>
-              <Text className='section-title'>我的待办</Text>
-              <Text className='section-more' onClick={() => Taro.switchTab({ url: '/pages/workorder-list/index' })}>全部 ›</Text>
+              <Text className='section-title'>主题设置</Text>
             </View>
-            {todos.length === 0 ? (
-              <View className='empty'>暂无待办，一切正常</View>
-            ) : (
-              todos.map((t) => (
-                <View key={t.id} className='todo-item' onClick={() => Taro.navigateTo({ url: `/pages/workorder-detail/index?id=${t.id}` })}>
-                  <View className='todo-item-left'>
-                    <Text className='todo-item-status' style={{ color: statusColor(t.status), background: statusBg(t.status) }}>{statusLabel(t.status)}</Text>
-                    <View className='todo-item-body'>
-                      <Text className='todo-item-title'>{t.title}</Text>
-                      <Text className='todo-item-meta'>{typeLabel(t.type)} · {t.machineryName}</Text>
-                    </View>
+            <View className='menu-card'>
+              {THEMES.map((t, i) => (
+                <View key={t.key} className={`menu-item ${i === THEMES.length - 1 ? 'menu-last' : ''}`} onClick={() => pickTheme(t.key)}>
+                  <Text className='menu-label'>{t.label}</Text>
+                  <View className='menu-right'>
+                    <Text className='menu-value'>{t.desc}</Text>
+                    <Text className='menu-arrow'>{(t.key === 'dark' || t.key === 'light') ? (modeKey === t.key ? '✓' : '›') : (themeKey === t.key ? '✓' : '›')}</Text>
                   </View>
-                  <Text className='todo-item-arrow'>›</Text>
                 </View>
-              ))
-            )}
+              ))}
+            </View>
+
+            {/* 自定义主题色 */}
+            <View className='theme-colors'>
+              {[PRESET_ORANGE, ...CUSTOM_COLORS].map((c) => {
+                const active = isCustomColor(themeKey) ? c.toLowerCase() === themeKey.toLowerCase() : (!themeKey || themeKey === 'orange') && c === PRESET_ORANGE
+                return (
+                  <View key={c} className={`theme-color-dot ${active ? 'on' : ''}`} style={{ background: c }} onClick={() => pickTheme(c)} />
+                )
+              })}
+            </View>
+            <Text className='theme-colors-tip'>选择强调色，橙色为默认主题</Text>
           </View>
+
+          {/* 关于 */}
+          <View className='section'>
+            <View className='menu-card'>
+              <View className='menu-item menu-last'>
+                <Text className='menu-label'>版本</Text>
+                <View className='menu-right'>
+                  <Text className='menu-value'>v1.1 企业内部版</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {loggedIn && (
+            <View className='logout-btn' onClick={logout}>退出登录</View>
+          )}
+          {!loggedIn && (
+            <View className='logout-btn primary' onClick={() => Taro.navigateTo({ url: '/pages/login/index' })}>立即登录</View>
+          )}
+          <View style={{ height: '40px' }} />
         </>
       )}
-
-      {/* 功能菜单 */}
-      <View className='section'>
-        <View className='section-head'>
-          <Text className='section-title'>功能入口</Text>
-        </View>
-        <View className='menu-card'>
-          {menuItems.map((m, i) => (
-            <View key={m.label} className={`menu-item ${i === menuItems.length - 1 ? 'menu-last' : ''}`} onClick={m.action}>
-              <Text className='menu-label'>{m.label}</Text>
-              <View className='menu-right'>
-                <Text className='menu-value'>{m.value}</Text>
-                <Text className='menu-arrow'>›</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      {/* 主题设置 */}
-      <View className='section'>
-        <View className='section-head'>
-          <Text className='section-title'>主题设置</Text>
-        </View>
-        <View className='menu-card'>
-          {THEMES.map((t, i) => (
-            <View key={t.key} className={`menu-item ${i === THEMES.length - 1 ? 'menu-last' : ''}`} onClick={() => pickTheme(t.key)}>
-              <Text className='menu-label'>{t.label}</Text>
-              <View className='menu-right'>
-                <Text className='menu-value'>{t.desc}</Text>
-                <Text className='menu-arrow'>{(t.key === 'dark' || t.key === 'light') ? (modeKey === t.key ? '✓' : '›') : (themeKey === t.key ? '✓' : '›')}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        {/* 自定义主题色 */}
-        <View className='theme-colors'>
-          {[PRESET_ORANGE, ...CUSTOM_COLORS].map((c) => {
-            const active = isCustomColor(themeKey) ? c.toLowerCase() === themeKey.toLowerCase() : (!themeKey || themeKey === 'orange') && c === PRESET_ORANGE
-            return (
-              <View key={c} className={`theme-color-dot ${active ? 'on' : ''}`} style={{ background: c }} onClick={() => pickTheme(c)} />
-            )
-          })}
-        </View>
-        <Text className='theme-colors-tip'>选择强调色，橙色为默认主题</Text>
-      </View>
-
-      {/* 关于 */}
-      <View className='section'>
-        <View className='menu-card'>
-          <View className='menu-item menu-last'>
-            <Text className='menu-label'>版本</Text>
-            <View className='menu-right'>
-              <Text className='menu-value'>v1.1 企业内部版</Text>
-            </View>
-          </View>
-        </View>
-      </View>
-
-      {loggedIn && (
-        <View className='logout-btn' onClick={logout}>退出登录</View>
-      )}
-      {!loggedIn && (
-        <View className='logout-btn primary' onClick={() => Taro.navigateTo({ url: '/pages/login/index' })}>立即登录</View>
-      )}
-      <View style={{ height: '40px' }} />
     </ScrollView>
   )
 }

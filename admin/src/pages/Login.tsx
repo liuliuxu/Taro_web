@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Form, Input, Button, Typography, message } from 'antd'
+import { Form, Input, Button, Typography, message, Card } from 'antd'
 import { LockOutlined, UserOutlined } from '@ant-design/icons'
 import { post } from '../api'
 import type { User } from '../types'
@@ -26,130 +26,107 @@ export default function Login() {
 
   return (
     <div className='login-wrap'>
-      {/* 左侧品牌区 */}
-      <div style={{
-        flex: '0 0 480px',
-        background: 'linear-gradient(160deg, #16283B 0%, #1E3A55 55%, #2C5A7F 100%)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '60px 48px',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* 装饰圆 */}
-        <div style={{
-          position: 'absolute', left: -100, top: -100,
-          width: 400, height: 400, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,107,26,0.18) 0%, transparent 70%)'
-        }} />
-        <div style={{
-          position: 'absolute', right: -60, bottom: -60,
-          width: 280, height: 280, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)'
-        }} />
-
-        <div style={{
-          width: 100, height: 100, borderRadius: 24,
-          background: 'linear-gradient(135deg, #FF8A3D, #F2540E)',
-          color: '#fff', fontSize: 44, fontWeight: 800,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 12px 32px rgba(255,107,26,0.4)',
-          zIndex: 1, letterSpacing: 0
-        }}>重</div>
-
-        <div style={{
-          color: '#fff', fontSize: 28, fontWeight: 800,
-          marginTop: 28, zIndex: 1, letterSpacing: 2
-        }}>重工设备管理平台</div>
-
-        <div style={{
-          color: 'rgba(255,255,255,0.5)', fontSize: 14,
-          marginTop: 10, zIndex: 1, letterSpacing: 3
-        }}>企业内部 · 设备台账 · 维修闭环</div>
-
-        <div style={{
-          marginTop: 48, zIndex: 1,
-          display: 'flex', gap: 24, color: 'rgba(255,255,255,0.35)', fontSize: 12
-        }}>
-          <span>设备管理</span>
-          <span>·</span>
-          <span>审批流程</span>
-          <span>·</span>
-          <span>采购库存</span>
-        </div>
+      {/* 背景装饰层 */}
+      <div className='login-bg'>
+        <div className='login-orb login-orb-1' />
+        <div className='login-orb login-orb-2' />
+        <div className='login-grid' />
       </div>
 
-      {/* 右侧登录区 */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--hm-bg, #F0F2F5)'
-      }}>
-        <div style={{ width: 380 }}>
-          <div style={{ marginBottom: 36 }}>
-            <Typography.Title level={3} style={{ marginBottom: 6, fontWeight: 800 }}>
-              欢迎登录
-            </Typography.Title>
-            <Typography.Text type='secondary' style={{ fontSize: 14 }}>
-              请使用管理员账号登录后台
-            </Typography.Text>
+      <div className='login-container'>
+        {/* 左侧品牌展示区 */}
+        <div className='login-brand'>
+          <div className='login-orb login-orb-brand' />
+          
+          <div className='login-logo'>
+            <span className='login-logo-char'>重</span>
           </div>
+          
+          <h1 className='login-brand-title'>重工设备管理平台</h1>
+          <p className='login-brand-slogan'>企业内部 · 设备台账 · 维修闭环</p>
+          
+          <ul className='login-features'>
+            <li>设备台账全生命周期</li>
+            <li>工单闭环·调度可视化</li>
+            <li>审批流程自定义配置</li>
+            <li>采购库存·租赁合同</li>
+          </ul>
+          
+          <p className='login-version'>v1.1 企业内部版</p>
+        </div>
 
-          <Form<{ username: string; password: string }>
-            onFinish={submit}
-            initialValues={{ username: 'admin' }}
-            disabled={loading}
-            size='large'
-          >
-            <Form.Item name='username' rules={[{ required: true, message: '请输入用户名' }]}>
-              <Input prefix={<UserOutlined style={{ color: '#FF6B1A' }} />} placeholder='用户名' />
-            </Form.Item>
-            <Form.Item name='password' rules={[{ required: true, message: '请输入密码' }]}>
-              <Input.Password prefix={<LockOutlined style={{ color: '#FF6B1A' }} />} placeholder='密码' />
-            </Form.Item>
-            <Form.Item style={{ marginBottom: 12 }}>
-              <Button
-                type='primary'
-                htmlType='submit'
-                block
-                loading={loading}
-                style={{
-                  height: 44,
-                  borderRadius: 10,
-                  background: 'linear-gradient(135deg, #FF8A3D, #F2540E)',
-                  fontWeight: 600,
-                  fontSize: 15,
-                  border: 'none'
-                }}
+        {/* 右侧登录表单区 */}
+        <div className='login-form-wrap'>
+          <div className='login-card'>
+            <div className='login-header'>
+              <Typography.Title level={3} className='login-title'>
+                欢迎登录
+              </Typography.Title>
+              <Typography.Text type='secondary' className='login-subtitle'>
+                使用企业账号登录管理后台
+              </Typography.Text>
+            </div>
+
+            <Form<{ username: string; password: string }>
+              onFinish={submit}
+              initialValues={{ username: 'admin' }}
+              disabled={loading}
+              size='large'
+              layout='vertical'
+            >
+              <Form.Item
+                name='username'
+                rules={[{ required: true, message: '请输入用户名' }]}
+                className='login-form-item'
               >
-                登 录
-              </Button>
-            </Form.Item>
-          </Form>
+                <Input
+                  prefix={<UserOutlined className='login-input-icon' />}
+                  placeholder='用户名/工号'
+                  autoComplete='username'
+                />
+              </Form.Item>
+              <Form.Item
+                name='password'
+                rules={[{ required: true, message: '请输入密码' }]}
+                className='login-form-item'
+              >
+                <Input.Password
+                  prefix={<LockOutlined className='login-input-icon' />}
+                  placeholder='登录密码'
+                  autoComplete='current-password'
+                />
+              </Form.Item>
+              
+              <Form.Item className='login-form-item login-form-item-btn' style={{ marginBottom: 0 }}>
+                <Button
+                  type='primary'
+                  htmlType='submit'
+                  block
+                  loading={loading}
+                  className='login-btn'
+                >
+                  登 录
+                </Button>
+              </Form.Item>
+            </Form>
 
-          <div style={{
-            textAlign: 'center',
-            marginTop: 24,
-            paddingTop: 16,
-            borderTop: '1px solid var(--border, #E5E7EB)',
-            color: 'var(--text-3, #9CA3AF)',
-            fontSize: 12,
-            lineHeight: 2
-          }}>
-            测试账号：admin / admin123 · manager / manager123
-          </div>
-
-          <div style={{
-            textAlign: 'center',
-            marginTop: 16,
-            color: 'var(--text-3, #9CA3AF)',
-            fontSize: 11
-          }}>
-            重工机械一体化管理平台 v1.0
+            <div className='login-footer'>
+              <div className='login-test-accounts'>
+                <Typography.Text type='secondary' style={{ fontSize: 12 }}>
+                  测试账号：
+                </Typography.Text>
+                <div className='login-account-list'>
+                  <span className='login-account'>admin / admin123</span>
+                  <span className='login-account-divider'>·</span>
+                  <span className='login-account'>manager / manager123</span>
+                  <span className='login-account-divider'>·</span>
+                  <span className='login-account'>operator / operator123</span>
+                </div>
+              </div>
+              <Typography.Text type='secondary' className='login-copyright'>
+                重工机械一体化管理平台 v1.1
+              </Typography.Text>
+            </div>
           </div>
         </div>
       </div>

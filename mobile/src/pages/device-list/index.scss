@@ -3,10 +3,16 @@
   flex-direction: column;
   height: 100vh;
   background: var(--bg);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .search-bar {
   padding: 20px 24px 12px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .search-input {
@@ -20,6 +26,8 @@
 .cat-scroll {
   white-space: nowrap;
   padding: 10px 24px 16px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .cat-row {
@@ -48,6 +56,8 @@
   flex: 1;
   padding: 0 24px;
   height: 100%;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .count-line {

@@ -81,6 +81,19 @@ page {
   -webkit-font-smoothing: antialiased;
 }
 
+/* 全局隐藏滚动条（横向 + 纵向），避免遮挡末位项 */
+::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+scroll-view,
+taro-scroll-view,
+.taro-scroll-view {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
 /* 通用工具类 */
 .flex {
   display: flex;

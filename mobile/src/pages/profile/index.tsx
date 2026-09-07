@@ -29,6 +29,7 @@ export default function Profile() {
     id: 0, username: '游客', nickname: '游客', phone: '', email: '', role: 'customer',
     avatar: '', createdAt: '', hireDate: '', workYears: 0, annualLeave: 0, compensatoryLeave: 0, overtime: 0
   }
+  // 统一使用 safeUser，保证永远不为 null
   const safeUser = user || defaultUser
   const [stats, setStats] = useState<any>(null)
 
@@ -61,11 +62,9 @@ export default function Profile() {
     } catch (e) { /* ignore */ }
   }
 
-  const roleLabel = user && user.role
-    ? user.role === 'admin' ? '管理员'
-      : user.role === 'manager' ? '设备负责人'
-      : user.role === 'operator' ? '作业人员'
-      : '成员'
+  const roleLabel = safeUser.role === 'admin' ? '管理员'
+    : safeUser.role === 'manager' ? '设备负责人'
+    : safeUser.role === 'operator' ? '作业人员'
     : '成员'
 
   function logout() {
@@ -76,11 +75,10 @@ export default function Profile() {
         if (r.confirm) {
           Taro.removeStorageSync('token')
           setLoggedIn(false)
+          // 先跳转，再清理 state，避免渲染报错
+          Taro.reLaunch({ url: '/pages/login/index' })
           setUser(null)
           Taro.showToast({ title: '已退出', icon: 'none' })
-          setTimeout(() => {
-            Taro.reLaunch({ url: '/pages/login/index' })
-          }, 500)
         }
       }
     })
@@ -110,15 +108,18 @@ export default function Profile() {
     Taro.navigateTo({ url: '/pages/edit-profile/index' })
   }
 
+  // 只有 loggedIn && user 时才渲染已登录内容
+  const showLoggedInContent = loggedIn && user
+
   return (
     <ScrollView scrollY className='profile-page'>
       {/* 头部 */}
       <View className='profile-hero'>
-        {loggedIn && user ? (
+        {showLoggedInContent ? (
           <View className='profile-user'>
-            <View className='profile-avatar'>{user.nickname?.charAt(0) || user.username.charAt(0)}</View>
+            <View className='profile-avatar'>{safeUser.nickname?.charAt(0) || safeUser.username.charAt(0)}</View>
             <View className='profile-user-info'>
-              <Text className='profile-name'>{user.nickname || user.username}</Text>
+              <Text className='profile-name'>{safeUser.nickname || safeUser.username}</Text>
               <Text className='profile-role'>{roleLabel} · 企业成员</Text>
             </View>
           </View>
@@ -133,7 +134,7 @@ export default function Profile() {
         )}
       </View>
 
-      {loggedIn && (
+      {showLoggedInContent && (
         <>
           {/* 我的统计 */}
           <View className='pf-stat-card'>
@@ -161,29 +162,29 @@ export default function Profile() {
             </View>
             <View className='profile-info-card'>
               <View className='profile-info-main'>
-                <View className='profile-info-avatar'>{user.nickname?.charAt(0) || user.username.charAt(0)}</View>
+                <View className='profile-info-avatar'>{safeUser.nickname?.charAt(0) || safeUser.username.charAt(0)}</View>
                 <View className='profile-info-text'>
-                  <Text className='profile-info-name'>{user.nickname || user.username}</Text>
+                  <Text className='profile-info-name'>{safeUser.nickname || safeUser.username}</Text>
                   <Text className='profile-info-role'>{roleLabel}</Text>
-                  <Text className='profile-info-phone'>{user?.phone || '未填写手机号'}</Text>
+                  <Text className='profile-info-phone'>{safeUser.phone || '未填写手机号'}</Text>
                 </View>
               </View>
               <View className='profile-info-stats'>
                 <View className='profile-info-stat'>
                   <Text className='profile-info-stat-label'>工龄</Text>
-                  <Text className='profile-info-stat-value'>{user?.workYears != null ? `${user?.workYears} 年` : '—'}</Text>
+                  <Text className='profile-info-stat-value'>{safeUser.workYears != null ? `${safeUser.workYears} 年` : '—'}</Text>
                 </View>
                 <View className='profile-info-stat'>
                   <Text className='profile-info-stat-label'>年假</Text>
-                  <Text className='profile-info-stat-value'>{user?.annualLeave != null ? `${user?.annualLeave} 天` : '—'}</Text>
+                  <Text className='profile-info-stat-value'>{safeUser.annualLeave != null ? `${safeUser.annualLeave} 天` : '—'}</Text>
                 </View>
                 <View className='profile-info-stat'>
                   <Text className='profile-info-stat-label'>调休</Text>
-                  <Text className='profile-info-stat-value'>{user?.compensatoryLeave != null ? `${user?.compensatoryLeave} 小时` : '—'}</Text>
+                  <Text className='profile-info-stat-value'>{safeUser.compensatoryLeave != null ? `${safeUser.compensatoryLeave} 小时` : '—'}</Text>
                 </View>
                 <View className='profile-info-stat'>
                   <Text className='profile-info-stat-label'>加班</Text>
-                  <Text className='profile-info-stat-value'>{user?.overtime != null ? `${user?.overtime} 小时` : '—'}</Text>
+                  <Text className='profile-info-stat-value'>{safeUser.overtime != null ? `${safeUser.overtime} 小时` : '—'}</Text>
                 </View>
               </View>
             </View>
@@ -230,12 +231,7 @@ export default function Profile() {
             </View>
           </View>
 
-          {loggedIn && (
-            <View className='logout-btn' onClick={logout}>退出登录</View>
-          )}
-          {!loggedIn && (
-            <View className='logout-btn primary' onClick={() => Taro.navigateTo({ url: '/pages/login/index' })}>立即登录</View>
-          )}
+          <View className='logout-btn' onClick={logout}>退出登录</View>
           <View style={{ height: '40px' }} />
         </>
       )}

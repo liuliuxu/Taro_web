@@ -3,6 +3,9 @@ package com.heavymachinery.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 /**
  * PC 后台新建用户请求
  */
@@ -25,4 +28,10 @@ public class UserCreateRequest {
 
     /** 所属机构；为空时默认为当前操作人机构 */
     private Long orgId;
+
+    private LocalDate hireDate;
+    private Integer workYears;
+    private BigDecimal annualLeave;
+    private BigDecimal compensatoryLeave;
+    private BigDecimal overtime;
 }

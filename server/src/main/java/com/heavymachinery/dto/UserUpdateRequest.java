@@ -2,6 +2,9 @@ package com.heavymachinery.dto;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 /**
  * PC 后台用户信息更新请求
  */
@@ -14,4 +17,9 @@ public class UserUpdateRequest {
     private String role;
     private String password;
     private Long orgId;
+    private LocalDate hireDate;
+    private Integer workYears;
+    private BigDecimal annualLeave;
+    private BigDecimal compensatoryLeave;
+    private BigDecimal overtime;
 }

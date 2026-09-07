@@ -28,6 +28,11 @@ export interface User {
   email: string
   role: string
   avatar: string
+  hireDate?: string
+  workYears?: number
+  annualLeave?: number
+  compensatoryLeave?: number
+  overtime?: number
   createdAt: string
 }
 

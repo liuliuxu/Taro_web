@@ -7,6 +7,11 @@ export interface User {
   role: string
   avatar: string
   orgId?: number | null
+  hireDate?: string
+  workYears?: number
+  annualLeave?: number
+  compensatoryLeave?: number
+  overtime?: number
   createdAt: string
 }
 

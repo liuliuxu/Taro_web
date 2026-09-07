@@ -70,6 +70,11 @@ public class AdminUserController {
         u.setPhone(request.getPhone());
         u.setEmail(request.getEmail());
         u.setRole(request.getRole());
+        u.setHireDate(request.getHireDate());
+        u.setWorkYears(request.getWorkYears());
+        u.setAnnualLeave(request.getAnnualLeave());
+        u.setCompensatoryLeave(request.getCompensatoryLeave());
+        u.setOvertime(request.getOvertime());
         Long orgId = request.getOrgId();
         if (orgId == null) {
             User current = authService.getCurrentUser();
@@ -100,6 +105,11 @@ public class AdminUserController {
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
             u.setPassword(passwordEncoder.encode(request.getPassword()));
         }
+        if (request.getHireDate() != null) u.setHireDate(request.getHireDate());
+        if (request.getWorkYears() != null) u.setWorkYears(request.getWorkYears());
+        if (request.getAnnualLeave() != null) u.setAnnualLeave(request.getAnnualLeave());
+        if (request.getCompensatoryLeave() != null) u.setCompensatoryLeave(request.getCompensatoryLeave());
+        if (request.getOvertime() != null) u.setOvertime(request.getOvertime());
         return ApiResponse.success("用户更新成功", userRepository.save(u));
     }
 

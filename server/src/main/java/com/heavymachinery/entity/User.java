@@ -6,7 +6,9 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 /**
  * 用户实体
@@ -38,6 +40,21 @@ public class User {
 
     @Column(length = 255)
     private String avatar;
+
+    /** 入职日期 */
+    private java.time.LocalDate hireDate;
+
+    /** 工作年限（年） */
+    private Integer workYears;
+
+    /** 年假余额（天） */
+    private BigDecimal annualLeave;
+
+    /** 调休余额（小时） */
+    private BigDecimal compensatoryLeave;
+
+    /** 本月累计加班（小时） */
+    private BigDecimal overtime;
 
     /**
      * customer 客户, admin 管理员

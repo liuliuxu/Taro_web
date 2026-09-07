@@ -4,6 +4,7 @@ export default defineAppConfig({
     'pages/device-list/index',
     'pages/workorder-list/index',
     'pages/profile/index',
+    'pages/edit-profile/index',
     'pages/device-detail/index',
     'pages/workorder-detail/index',
     'pages/workorder-create/index',

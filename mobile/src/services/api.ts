@@ -51,6 +51,9 @@ export const authApi = {
   },
   getProfile() {
     return api.get<User>('/auth/profile')
+  },
+  updateProfile(data: { nickname?: string; phone?: string; email?: string; hireDate?: string; workYears?: number }) {
+    return api.put<User>('/auth/profile', data, true)
   }
 }
 

@@ -3,6 +3,7 @@ package com.heavymachinery.service;
 import com.heavymachinery.dto.AuthResponse;
 import com.heavymachinery.dto.LoginRequest;
 import com.heavymachinery.dto.RegisterRequest;
+import com.heavymachinery.dto.UserUpdateRequest;
 import com.heavymachinery.entity.User;
 
 public interface AuthService {
@@ -12,4 +13,6 @@ public interface AuthService {
     AuthResponse register(RegisterRequest request);
 
     User getCurrentUser();
+
+    User updateProfile(UserUpdateRequest request);
 }

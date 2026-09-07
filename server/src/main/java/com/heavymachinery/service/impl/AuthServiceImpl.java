@@ -4,6 +4,7 @@ import com.heavymachinery.common.BusinessException;
 import com.heavymachinery.dto.AuthResponse;
 import com.heavymachinery.dto.LoginRequest;
 import com.heavymachinery.dto.RegisterRequest;
+import com.heavymachinery.dto.UserUpdateRequest;
 import com.heavymachinery.entity.User;
 import com.heavymachinery.repository.UserRepository;
 import com.heavymachinery.security.JwtUtil;
@@ -91,5 +92,17 @@ public class AuthServiceImpl implements AuthService {
         }
         return userRepository.findById(principal.getId())
                 .orElseThrow(() -> new BusinessException("用户不存在"));
+    }
+
+    @Override
+    @Transactional
+    public User updateProfile(UserUpdateRequest request) {
+        User u = getCurrentUser();
+        if (request.getNickname() != null) u.setNickname(request.getNickname());
+        if (request.getPhone() != null) u.setPhone(request.getPhone());
+        if (request.getEmail() != null) u.setEmail(request.getEmail());
+        if (request.getHireDate() != null) u.setHireDate(request.getHireDate());
+        if (request.getWorkYears() != null) u.setWorkYears(request.getWorkYears());
+        return userRepository.save(u);
     }
 }

@@ -135,6 +135,7 @@ public class DataInitializer implements CommandLineRunner {
             initRentals(rootOrgId);
         }
         initApprovalConfig();
+        initHRApprovalConfig(rootOrgId);
         if (announcementRepository.count() == 0) {
             initAnnouncements(rootOrgId);
         }
@@ -516,6 +517,259 @@ public class DataInitializer implements CommandLineRunner {
             }
             log.info("已初始化审批配置：表单/流程");
         }
+    }
+
+    /** 考勤/假期配置与示例数据：请假审批、加班审批表单/流程/选项集，并按工龄补充示例审批 */
+    private void initHRApprovalConfig(Long rootOrgId) {
+        OptionSet leaveType = optionSetRepository.findByCode("LEAVE_TYPE").orElse(null);
+        if (leaveType == null) {
+            leaveType = new OptionSet();
+            leaveType.setCode("LEAVE_TYPE");
+            leaveType.setName("请假类型");
+            leaveType.setOptionsJson("[{\"label\":\"年假\",\"value\":\"annual\"},{\"label\":\"事假\",\"value\":\"personal\"},{\"label\":\"病假\",\"value\":\"sick\"},{\"label\":\"调休\",\"value\":\"compensatory\"}]");
+            leaveType.setStatus("enabled");
+            optionSetRepository.save(leaveType);
+        }
+
+        OptionSet overtimeType = optionSetRepository.findByCode("OVERTIME_TYPE").orElse(null);
+        if (overtimeType == null) {
+            overtimeType = new OptionSet();
+            overtimeType.setCode("OVERTIME_TYPE");
+            overtimeType.setName("加班类型");
+            overtimeType.setOptionsJson("[{\"label\":\"工作日加班\",\"value\":\"workday\"},{\"label\":\"周末加班\",\"value\":\"weekend\"},{\"label\":\"法定节假日加班\",\"value\":\"holiday\"}]");
+            overtimeType.setStatus("enabled");
+            optionSetRepository.save(overtimeType);
+        }
+
+        OptionSet overtimePref = optionSetRepository.findByCode("OVERTIME_PREF").orElse(null);
+        if (overtimePref == null) {
+            overtimePref = new OptionSet();
+            overtimePref.setCode("OVERTIME_PREF");
+            overtimePref.setName("加班处理方式");
+            overtimePref.setOptionsJson("[{\"label\":\"补休（调休）\",\"value\":\"compensatory\"},{\"label\":\"加班费\",\"value\":\"payment\"}]");
+            overtimePref.setStatus("enabled");
+            optionSetRepository.save(overtimePref);
+        }
+
+        List<FormDefinition> leaveForms = formDefinitionRepository.findByBizTypeOrderByCreatedAtDesc("leave");
+        FormDefinition leaveForm = leaveForms.isEmpty() ? null : leaveForms.get(0);
+        if (leaveForm == null) {
+            leaveForm = new FormDefinition();
+            leaveForm.setName("请假申请单");
+            leaveForm.setBizType("leave");
+            leaveForm.setStatus("enabled");
+            leaveForm.setFieldsJson("["
+                    + "{\"key\":\"leaveType\",\"label\":\"请假类型\",\"type\":\"select\",\"required\":true,\"optionsFrom\":\"optionSet\",\"optionSetCode\":\"LEAVE_TYPE\"},"
+                    + "{\"key\":\"startDate\",\"label\":\"开始日期\",\"type\":\"date\",\"required\":true},"
+                    + "{\"key\":\"endDate\",\"label\":\"结束日期\",\"type\":\"date\",\"required\":true},"
+                    + "{\"key\":\"leaveDays\",\"label\":\"请假天数\",\"type\":\"number\",\"required\":true},"
+                    + "{\"key\":\"reason\",\"label\":\"请假事由\",\"type\":\"textarea\",\"required\":true},"
+                    + "{\"key\":\"contact\",\"label\":\"紧急联系人\",\"type\":\"input\"}"
+                    + "]");
+            leaveForm = formDefinitionRepository.save(leaveForm);
+        }
+
+        List<FormDefinition> overtimeForms = formDefinitionRepository.findByBizTypeOrderByCreatedAtDesc("overtime");
+        FormDefinition overtimeForm = overtimeForms.isEmpty() ? null : overtimeForms.get(0);
+        if (overtimeForm == null) {
+            overtimeForm = new FormDefinition();
+            overtimeForm.setName("加班申请单");
+            overtimeForm.setBizType("overtime");
+            overtimeForm.setStatus("enabled");
+            overtimeForm.setFieldsJson("["
+                    + "{\"key\":\"overtimeType\",\"label\":\"加班类型\",\"type\":\"select\",\"required\":true,\"optionsFrom\":\"optionSet\",\"optionSetCode\":\"OVERTIME_TYPE\"},"
+                    + "{\"key\":\"workDate\",\"label\":\"加班日期\",\"type\":\"date\",\"required\":true},"
+                    + "{\"key\":\"hours\",\"label\":\"加班小时数\",\"type\":\"number\",\"required\":true},"
+                    + "{\"key\":\"pref\",\"label\":\"处理方式\",\"type\":\"select\",\"required\":true,\"optionsFrom\":\"optionSet\",\"optionSetCode\":\"OVERTIME_PREF\"},"
+                    + "{\"key\":\"reason\",\"label\":\"加班说明\",\"type\":\"textarea\",\"required\":true}"
+                    + "]");
+            overtimeForm = formDefinitionRepository.save(overtimeForm);
+        }
+
+        Long leaveFormId = leaveForm.getId();
+        Long overtimeFormId = overtimeForm.getId();
+        boolean needLeaveProcess = processDefinitionRepository.findAll().stream()
+                .noneMatch(p -> leaveFormId.equals(p.getFormId()));
+        if (needLeaveProcess) {
+            ProcessDefinition leaveProcess = new ProcessDefinition();
+            leaveProcess.setName("请假审批");
+            leaveProcess.setFormId(leaveFormId);
+            leaveProcess.setStatus("published");
+            leaveProcess.setNodesJson("[{\"index\":0,\"name\":\"部门主管审批\",\"approverType\":\"role\",\"approverValue\":\"manager\"},{\"index\":1,\"name\":\"人力资源复核\",\"approverType\":\"role\",\"approverValue\":\"admin\"}]");
+            processDefinitionRepository.save(leaveProcess);
+        }
+
+        boolean needOvertimeProcess = processDefinitionRepository.findAll().stream()
+                .noneMatch(p -> overtimeFormId.equals(p.getFormId()));
+        if (needOvertimeProcess) {
+            ProcessDefinition overtimeProcess = new ProcessDefinition();
+            overtimeProcess.setName("加班审批");
+            overtimeProcess.setFormId(overtimeFormId);
+            overtimeProcess.setStatus("published");
+            overtimeProcess.setNodesJson("[{\"index\":0,\"name\":\"部门主管审批\",\"approverType\":\"role\",\"approverValue\":\"manager\"},{\"index\":1,\"name\":\"人力资源复核\",\"approverType\":\"role\",\"approverValue\":\"admin\"}]");
+            processDefinitionRepository.save(overtimeProcess);
+        }
+
+        initHRUsers();
+        initHRSampleApprovals(leaveForm, overtimeForm, rootOrgId);
+        log.info("已初始化请假/加班审批配置与示例数据");
+    }
+
+    /** 为现有用户补全工龄/年假/调休/加班等个人信息（多次重启幂等） */
+    private void initHRUsers() {
+        User u = userRepository.findByUsername("operator").orElse(null);
+        if (u != null && u.getWorkYears() == null) {
+            u.setHireDate(LocalDate.now().minusYears(6));
+            u.setWorkYears(6);
+            u.setAnnualLeave(new BigDecimal("7"));
+            u.setCompensatoryLeave(new BigDecimal("12"));
+            u.setOvertime(new BigDecimal("6"));
+            userRepository.save(u);
+        }
+        u = userRepository.findByUsername("manager").orElse(null);
+        if (u != null && u.getWorkYears() == null) {
+            u.setHireDate(LocalDate.now().minusYears(12));
+            u.setWorkYears(12);
+            u.setAnnualLeave(new BigDecimal("15"));
+            u.setCompensatoryLeave(new BigDecimal("4"));
+            u.setOvertime(new BigDecimal("0"));
+            userRepository.save(u);
+        }
+        u = userRepository.findByUsername("demo").orElse(null);
+        if (u != null && u.getWorkYears() == null) {
+            u.setHireDate(LocalDate.now().minusYears(3));
+            u.setWorkYears(3);
+            u.setAnnualLeave(new BigDecimal("5"));
+            u.setCompensatoryLeave(new BigDecimal("8"));
+            u.setOvertime(new BigDecimal("10"));
+            userRepository.save(u);
+        }
+        u = userRepository.findByUsername("sub1t").orElse(null);
+        if (u != null && u.getWorkYears() == null) {
+            u.setHireDate(LocalDate.now().minusYears(8));
+            u.setWorkYears(8);
+            u.setAnnualLeave(new BigDecimal("10"));
+            u.setCompensatoryLeave(new BigDecimal("16"));
+            u.setOvertime(new BigDecimal("3"));
+            userRepository.save(u);
+        }
+    }
+
+    /** 请按工龄生成请假/加班审批示例：覆盖待审第1节点、待审第2节点、已通过、已驳回 */
+    private void initHRSampleApprovals(FormDefinition leaveForm, FormDefinition overtimeForm, Long rootOrgId) {
+        boolean hasData = approvalInstanceRepository.findAll().stream()
+                .anyMatch(a -> "leave".equals(a.getBizType()) || "overtime".equals(a.getBizType()));
+        if (hasData) {
+            return;
+        }
+        User manager = userRepository.findByUsername("manager").orElse(null);
+        User operator = userRepository.findByUsername("operator").orElse(null);
+        User demo = userRepository.findByUsername("demo").orElse(null);
+        User sub1t = userRepository.findByUsername("sub1t").orElse(null);
+        User admin = userRepository.findByUsername("admin").orElse(null);
+        Long mgrId = manager != null ? manager.getId() : 3L;
+        String mgrName = manager != null ? manager.getNickname() : "设备负责人";
+        Long opId = operator != null ? operator.getId() : 4L;
+        String opName = operator != null ? operator.getNickname() : "一线维修工";
+        Long demoId = demo != null ? demo.getId() : 2L;
+        String demoName = demo != null ? demo.getNickname() : "示例用户";
+        Long subId = sub1t != null ? sub1t.getId() : 6L;
+        String subName = sub1t != null ? sub1t.getNickname() : "分公司员";
+        Long adminId = admin != null ? admin.getId() : 1L;
+        String adminName = admin != null ? admin.getNickname() : "系统管理员";
+        LocalDateTime now = LocalDateTime.now();
+
+        // 1. 待部门主管审批：operator 申请休年假
+        saveHRInstance(leaveForm.getId(), "leave", "leave", opId, opName, rootOrgId,
+                "一线维修工休年假 5 天",
+                "{\"leaveType\":\"annual\",\"startDate\":\"" + now.toLocalDate().plusDays(3) + "\",\"endDate\":\"" + now.toLocalDate().plusDays(7) + "\",\"leaveDays\":5,\"reason\":\"安排家庭出行，申请休年假 5 天\",\"contact\":\"李师傅 13611118888\"}",
+                "pending", 0, "部门主管审批", null,
+                "pending", null, null, null, null,
+                null, null, null, null);
+
+        // 2. 待部门主管审批：demo 申请加班（工作日 2 小时 → 支付加班费）
+        saveHRInstance(overtimeForm.getId(), "overtime", "overtime", demoId, demoName, rootOrgId,
+                "工作日加班 2 小时",
+                "{\"overtimeType\":\"workday\",\"workDate\":\"" + now.toLocalDate().plusDays(1) + "\",\"hours\":2,\"pref\":\"payment\",\"reason\":\"系统升级紧急处理，加班 2 小时\"}",
+                "pending", 0, "部门主管审批", null,
+                "pending", null, null, null, null,
+                null, null, null, null);
+
+        // 3. 待人力资源复核（第 2 节点）：manager 本人申请事假，第 1 节点已通过
+        saveHRInstance(leaveForm.getId(), "leave", "leave", mgrId, mgrName, rootOrgId,
+                "设备负责人休事假 1 天",
+                "{\"leaveType\":\"personal\",\"startDate\":\"" + now.toLocalDate().plusDays(2) + "\",\"endDate\":\"" + now.toLocalDate().plusDays(2) + "\",\"leaveDays\":1,\"reason\":\"家中有事，请事假一天\"}",
+                "pending", 1, "人力资源复核", null,
+                "approved", mgrId, mgrName, "同意，按流程继续", now.minusDays(1),
+                "pending", null, null, null);
+
+        // 4. 已通过：sub1t 申请周末加班 8 小时 → 调休
+        saveHRInstance(overtimeForm.getId(), "overtime", "overtime", subId, subName, rootOrgId,
+                "周末加班 8 小时（调休）",
+                "{\"overtimeType\":\"weekend\",\"workDate\":\"" + now.toLocalDate().minusDays(6) + "\",\"hours\":8,\"pref\":\"compensatory\",\"reason\":\"设备抢修保障生产，周末加班 8 小时\"}",
+                "approved", 2, "人力资源复核", now.minusDays(3),
+                "approved", mgrId, mgrName, "同意申请", now.minusDays(4),
+                "approved", adminId, adminName, now.minusDays(3));
+
+        // 5. 已驳回：operator 申请周末加班 4 小时
+        saveHRInstance(overtimeForm.getId(), "overtime", "overtime", opId, opName, rootOrgId,
+                "周末加班 4 小时（调休）",
+                "{\"overtimeType\":\"weekend\",\"workDate\":\"" + now.toLocalDate().minusDays(9) + "\",\"hours\":4,\"pref\":\"compensatory\",\"reason\":\"项目赶进度加班\"}",
+                "rejected", 1, "部门主管审批", now.minusDays(8),
+                "rejected", mgrId, mgrName, "本周排班已满，不予批准，建议下周安排。", now.minusDays(8),
+                null, null, null, null);
+        log.info("已生成请假/加班示例审批 5 条");
+    }
+
+    private void saveHRInstance(Long formId, String bizType, String noPrefix, Long applicantId, String applicantName,
+                                Long rootOrgId, String title, String formDataJson, String status, Integer currentNodeIndex,
+                                String currentNodeName, LocalDateTime finishedAt,
+                                String node0Status, Long node0HandledById, String node0HandledByName, String node0Comment, LocalDateTime node0HandledAt,
+                                String node1Status, Long node1HandledById, String node1HandledByName, LocalDateTime node1HandledAt) {
+        ApprovalInstance ai = new ApprovalInstance();
+        ai.setApprovalNo(noPrefix + System.currentTimeMillis() + ThreadLocalRandom.current().nextInt(100, 999));
+        ai.setProcessId(processDefinitionRepository.findAll().stream()
+                .filter(p -> formId.equals(p.getFormId()) && "published".equals(p.getStatus()))
+                .map(ProcessDefinition::getId).findFirst().orElse(null));
+        ai.setFormId(formId);
+        ai.setBizType(bizType);
+        ai.setTitle(title);
+        ai.setFormDataJson(formDataJson);
+        ai.setStatus(status);
+        ai.setApplicantId(applicantId);
+        ai.setApplicantName(applicantName);
+        ai.setOrgId(rootOrgId);
+        ai.setCurrentNodeIndex(currentNodeIndex);
+        ai.setCurrentNodeName(currentNodeName);
+        ai.setFinishedAt(finishedAt);
+        ai = approvalInstanceRepository.save(ai);
+
+        ApprovalTask t0 = new ApprovalTask();
+        t0.setInstanceId(ai.getId());
+        t0.setNodeIndex(0);
+        t0.setNodeName("部门主管审批");
+        t0.setStatus(node0Status);
+        t0.setCandidateIdsJson("[\"3\"]");
+        if (node0HandledById != null) {
+            t0.setHandledById(node0HandledById);
+            t0.setHandledByName(node0HandledByName);
+            t0.setComment(node0Comment);
+            t0.setHandledAt(node0HandledAt);
+        }
+        approvalTaskRepository.save(t0);
+
+        ApprovalTask t1 = new ApprovalTask();
+        t1.setInstanceId(ai.getId());
+        t1.setNodeIndex(1);
+        t1.setNodeName("人力资源复核");
+        t1.setStatus(node1Status != null ? node1Status : "pending");
+        t1.setCandidateIdsJson("[\"1\"]");
+        if (node1HandledById != null) {
+            t1.setHandledById(node1HandledById);
+            t1.setHandledByName(node1HandledByName);
+            t1.setHandledAt(node1HandledAt);
+        }
+        approvalTaskRepository.save(t1);
     }
 
     private void initAnnouncements(Long rootOrgId) {

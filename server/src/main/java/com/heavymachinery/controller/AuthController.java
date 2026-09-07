@@ -4,6 +4,7 @@ import com.heavymachinery.common.ApiResponse;
 import com.heavymachinery.dto.AuthResponse;
 import com.heavymachinery.dto.LoginRequest;
 import com.heavymachinery.dto.RegisterRequest;
+import com.heavymachinery.dto.UserUpdateRequest;
 import com.heavymachinery.entity.User;
 import com.heavymachinery.service.AuthService;
 import jakarta.validation.Valid;
@@ -32,5 +33,10 @@ public class AuthController {
     @GetMapping("/profile")
     public ApiResponse<User> profile() {
         return ApiResponse.success(authService.getCurrentUser());
+    }
+
+    @PutMapping("/profile")
+    public ApiResponse<User> updateProfile(@RequestBody UserUpdateRequest request) {
+        return ApiResponse.success("保存成功", authService.updateProfile(request));
     }
 }

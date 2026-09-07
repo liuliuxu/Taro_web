@@ -145,6 +145,37 @@ export default function Profile() {
             </View>
           </View>
 
+          {/* 我的资料 */}
+          <View className='section'>
+            <View className='section-head flex-between'>
+              <Text className='section-title'>我的资料</Text>
+              <Text className='section-more' onClick={() => Taro.navigateTo({ url: '/pages/edit-profile/index' })}>编辑 ›</Text>
+            </View>
+            <View className='menu-card'>
+              <View className='menu-item'><Text className='menu-label'>手机号</Text>
+                <View className='menu-right'><Text className='menu-value'>{user.phone || '—'}</Text></View>
+              </View>
+              <View className='menu-item'><Text className='menu-label'>邮箱</Text>
+                <View className='menu-right'><Text className='menu-value'>{user.email || '—'}</Text></View>
+              </View>
+              <View className='menu-item'><Text className='menu-label'>入职日期</Text>
+                <View className='menu-right'><Text className='menu-value'>{user.hireDate || '—'}</Text></View>
+              </View>
+              <View className='menu-item'><Text className='menu-label'>工作年限</Text>
+                <View className='menu-right'><Text className='menu-value'>{user.workYears != null ? `${user.workYears} 年` : '—'}</Text></View>
+              </View>
+              <View className='menu-item'><Text className='menu-label'>年假余额</Text>
+                <View className='menu-right'><Text className='menu-value'>{user.annualLeave != null ? `${user.annualLeave} 天` : '—'}</Text></View>
+              </View>
+              <View className='menu-item'><Text className='menu-label'>调休余额</Text>
+                <View className='menu-right'><Text className='menu-value'>{user.compensatoryLeave != null ? `${user.compensatoryLeave} 小时` : '—'}</Text></View>
+              </View>
+              <View className='menu-item menu-last'><Text className='menu-label'>本月加班</Text>
+                <View className='menu-right'><Text className='menu-value'>{user.overtime != null ? `${user.overtime} 小时` : '—'}</Text></View>
+              </View>
+            </View>
+          </View>
+
           {/* 我的待办 */}
           <View className='section'>
             <View className='section-head'>

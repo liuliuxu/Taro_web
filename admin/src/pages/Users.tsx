@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, Select, Space, message, Tag } from 'antd'
+import { Table, Button, Modal, Form, Input, Select, Space, message, Tag, InputNumber, DatePicker } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { get, post, put, del, qs } from '../api'
@@ -7,6 +7,7 @@ import type { Org, User } from '../types'
 import { roleLabel } from '../meta'
 import { confirmAction } from '../confirm'
 import { useCachedState } from '../useCachedState'
+import dayjs from 'dayjs'
 
 const ROLES = ['admin', 'manager', 'operator', 'customer']
 
@@ -41,7 +42,7 @@ export default function UsersPage() {
   }
   function openEdit(u: User) {
     setEditing(u)
-    form.setFieldsValue({ ...u, password: '' })
+    form.setFieldsValue({ ...u, password: '', hireDate: u.hireDate ? dayjs(u.hireDate) : undefined })
     setModal(true)
   }
   async function save() {
@@ -54,7 +55,12 @@ export default function UsersPage() {
           email: values.email || undefined,
           role: values.role,
           orgId: values.orgId || undefined,
-          password: values.password || undefined
+          password: values.password || undefined,
+          hireDate: values.hireDate || undefined,
+          workYears: values.workYears ?? undefined,
+          annualLeave: values.annualLeave ?? undefined,
+          compensatoryLeave: values.compensatoryLeave ?? undefined,
+          overtime: values.overtime ?? undefined
         }
         await put(`/admin/users/${editing.id}`, body)
       } else {
@@ -84,6 +90,11 @@ export default function UsersPage() {
         const org = orgs.find((o) => o.id === orgId)
         return org ? org.name : (orgId == null ? <Tag>集团</Tag> : '—')
       } },
+    { title: '入职日期', dataIndex: 'hireDate', render: (d) => d || '—' },
+    { title: '工龄(年)', dataIndex: 'workYears', render: (v) => v ?? '—' },
+    { title: '年假(天)', dataIndex: 'annualLeave', render: (v) => v ?? '—' },
+    { title: '调休(时)', dataIndex: 'compensatoryLeave', render: (v) => v ?? '—' },
+    { title: '加班(时)', dataIndex: 'overtime', render: (v) => v ?? '—' },
     { title: '创建时间', dataIndex: 'createdAt', render: (d) => d?.slice(0, 10) || '—' },
     {
       title: '操作', width: 140,
@@ -126,6 +137,11 @@ export default function UsersPage() {
             </Form.Item>
             <Form.Item name='phone' label='手机号'><Input /></Form.Item>
             <Form.Item name='email' label='邮箱'><Input /></Form.Item>
+            <Form.Item name='hireDate' label='入职日期'><DatePicker style={{ width: '100%' }} /></Form.Item>
+            <Form.Item name='workYears' label='工龄(年)'><InputNumber style={{ width: '100%' }} min={0} /></Form.Item>
+            <Form.Item name='annualLeave' label='年假(天)'><InputNumber style={{ width: '100%' }} min={0} /></Form.Item>
+            <Form.Item name='compensatoryLeave' label='调休(时)'><InputNumber style={{ width: '100%' }} min={0} /></Form.Item>
+            <Form.Item name='overtime' label='加班(时)'><InputNumber style={{ width: '100%' }} min={0} /></Form.Item>
           </div>
         </Form>
       </Modal>

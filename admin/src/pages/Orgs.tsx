@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Tree, Button, Modal, Form, Input, Select, Space, message, Popconfirm, Card, Row, Col } from 'antd'
+import { Tree, Button, Modal, Form, Input, Select, Space, message, Card, Row, Col } from 'antd'
 import { PlusOutlined, EditOutlined } from '@ant-design/icons'
 import { get, post, put, del } from '../api'
 import type { Org } from '../types'
+import { confirmAction } from '../confirm'
 
 export default function Orgs() {
   const [tree, setTree] = useState<Org[]>([])
@@ -71,9 +72,7 @@ export default function Orgs() {
                   <span>{o.name}</span>
                   <Button type='text' size='small' icon={<PlusOutlined />} onClick={() => openCreate(o.id)} />
                   <Button type='text' size='small' icon={<EditOutlined />} onClick={() => openEdit(o)} />
-                  <Popconfirm title='确认删除？' onConfirm={() => remove(o)}>
-                    <Button type='text' size='small' danger>删</Button>
-                  </Popconfirm>
+                  <Button type='text' size='small' danger onClick={() => confirmAction({ title: '确认删除？', content: `确定删除机构「${o.name}」吗？`, danger: true, onOk: () => remove(o) })}>删</Button>
                 </Space>
               )
             }))}
@@ -95,9 +94,7 @@ export default function Orgs() {
                   <td>
                     <Space>
                       <Button type='link' size='small' onClick={() => openEdit(o)}>编辑</Button>
-                      <Popconfirm title='确认删除？' onConfirm={() => remove(o)}>
-                        <Button type='link' size='small' danger>删除</Button>
-                      </Popconfirm>
+                      <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认删除？', content: `确定删除机构「${o.name}」吗？`, danger: true, onOk: () => remove(o) })}>删除</Button>
                     </Space>
                   </td>
                 </tr>
@@ -106,8 +103,8 @@ export default function Orgs() {
           </table>
         </Card>
       </Col>
-      <Modal title={editing ? '编辑机构' : '新增机构'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose>
-        <Form form={form} layout='vertical'>
+      <Modal title={editing ? '编辑机构' : '新增机构'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={560}>
+        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
           {!editing && (
             <Form.Item name='parentId' label='上级机构'>
               <Select allowClear placeholder='不选则为顶级机构' options={flat.filter((o) => o.id !== undefined).map((o) => ({ value: o.id, label: o.name }))} />

@@ -37,7 +37,7 @@ export default function Login() {
       <Card style={{ width: 380 }}>
         <div style={{ textAlign: 'center', marginBottom: 8 }}>
           <Typography.Title level={3} style={{ marginBottom: 4 }}>
-            重工机械数字化平台
+            机械数字化平台
           </Typography.Title>
           <Typography.Text type='secondary'>施工设备管理系统后台</Typography.Text>
         </div>

@@ -4,7 +4,15 @@ import { View, Text, ScrollView } from '@tarojs/components'
 import { authApi, workOrderApi, machineryApi } from '../../services/api'
 import type { User, WorkOrder } from '../../types'
 import { statusLabel, statusColor, statusBg, typeLabel } from '../../utils/workOrderMeta'
+import { applyTheme } from '../../app'
 import './index.scss'
+
+const THEMES = [
+  { key: 'dark', label: '深色模式', desc: '护眼夜间主题' },
+  { key: 'light', label: '浅色模式', desc: '默认明亮主题' },
+  { key: 'green', label: '墨绿主题', desc: '深邃墨绿强调色' },
+  { key: 'blue', label: '科技蓝主题', desc: '科技蓝强调色' }
+]
 
 export default function Profile() {
   const [user, setUser] = useState<User | null>(null)
@@ -53,6 +61,25 @@ export default function Profile() {
     })
   }
 
+  const [themeKey, setThemeKey] = useState('orange')
+  const [modeKey, setModeKey] = useState('light')
+  useDidShow(() => {
+    setThemeKey(Taro.getStorageSync('themeColor') || 'orange')
+    setModeKey(Taro.getStorageSync('theme') || 'light')
+  })
+
+  function pickTheme(t: string) {
+    if (t === 'dark' || t === 'light') {
+      Taro.setStorageSync('theme', t)
+      setModeKey(t)
+    } else {
+      Taro.setStorageSync('themeColor', t)
+      setThemeKey(t)
+    }
+    applyTheme()
+    Taro.showToast({ title: '主题已切换', icon: 'none' })
+  }
+
   const menuItems = [
     { label: '设备台账', value: '查看全部设备', action: () => Taro.switchTab({ url: '/pages/device-list/index' }) },
     { label: '工单管理', value: '报修 / 派单 / 处理', action: () => Taro.switchTab({ url: '/pages/workorder-list/index' }) },
@@ -93,20 +120,20 @@ export default function Profile() {
       {loggedIn && (
         <>
           {/* 我的统计 */}
-          <View className='stat-card'>
-            <View className='stat-item'>
-              <Text className='stat-num'>{stats?.total ?? 0}</Text>
-              <Text className='stat-label'>工单总数</Text>
+          <View className='pf-stat-card'>
+            <View className='pf-stat-item'>
+              <Text className='pf-stat-num'>{stats?.total ?? 0}</Text>
+              <Text className='pf-stat-label'>工单总数</Text>
             </View>
-            <View className='stat-divider' />
-            <View className='stat-item'>
-              <Text className='stat-num orange'>{stats?.myTodos ?? 0}</Text>
-              <Text className='stat-label'>我的待办</Text>
+            <View className='pf-stat-divider' />
+            <View className='pf-stat-item'>
+              <Text className='pf-stat-num orange'>{stats?.myTodos ?? 0}</Text>
+              <Text className='pf-stat-label'>我的待办</Text>
             </View>
-            <View className='stat-divider' />
-            <View className='stat-item'>
-              <Text className='stat-num green'>{stats?.done ?? 0}</Text>
-              <Text className='stat-label'>已完成</Text>
+            <View className='pf-stat-divider' />
+            <View className='pf-stat-item'>
+              <Text className='pf-stat-num green'>{stats?.done ?? 0}</Text>
+              <Text className='pf-stat-label'>已完成</Text>
             </View>
           </View>
 
@@ -148,6 +175,24 @@ export default function Profile() {
               <View className='menu-right'>
                 <Text className='menu-value'>{m.value}</Text>
                 <Text className='menu-arrow'>›</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* 主题设置 */}
+      <View className='section'>
+        <View className='section-head'>
+          <Text className='section-title'>主题设置</Text>
+        </View>
+        <View className='menu-card'>
+          {THEMES.map((t, i) => (
+            <View key={t.key} className={`menu-item ${i === THEMES.length - 1 ? 'menu-last' : ''}`} onClick={() => pickTheme(t.key)}>
+              <Text className='menu-label'>{t.label}</Text>
+              <View className='menu-right'>
+                <Text className='menu-value'>{t.desc}</Text>
+                <Text className='menu-arrow'>{(t.key === 'dark' || t.key === 'light') ? (modeKey === t.key ? '✓' : '›') : (themeKey === t.key ? '✓' : '›')}</Text>
               </View>
             </View>
           ))}

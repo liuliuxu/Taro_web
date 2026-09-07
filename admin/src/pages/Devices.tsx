@@ -1,20 +1,22 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, Select, InputNumber, Switch, Space, message, Popconfirm } from 'antd'
+import { Table, Button, Modal, Form, Input, Select, InputNumber, Switch, Space, message } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { get, post, put, del, qs } from '../api'
 import type { Machinery, Pagination } from '../types'
 import { StatusTag, machineryStatus, fmtMoney } from '../meta'
+import { confirmAction } from '../confirm'
+import { useCachedState } from '../useCachedState'
 
 const CATEGORIES = ['挖掘机', '装载机', '破碎锤', '自卸车', '泵车', '塔吊', '推土机', '压路机', '钻机']
 
 export default function Devices() {
   const [list, setList] = useState<Machinery[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useCachedState('dv_page', 1)
   const [pageSize] = useState(10)
-  const [keyword, setKeyword] = useState('')
-  const [filters, setFilters] = useState<Record<string, string>>({})
+  const [keyword, setKeyword] = useCachedState('dv_keyword', '')
+  const [filters, setFilters] = useCachedState<Record<string, string>>('dv_filters', {})
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<Machinery | null>(null)
   const [form] = Form.useForm()
@@ -68,13 +70,11 @@ export default function Devices() {
     { title: '状态', dataIndex: 'status', render: (s) => <StatusTag status={s} map={machineryStatus} /> },
     { title: '推荐', dataIndex: 'recommended', render: (v) => (v ? '★' : '—') },
     {
-      title: '操作', width: 130,
+      title: '操作', width: 140,
       render: (_, m) => (
         <Space>
           <Button type='link' size='small' onClick={() => openEdit(m)}>编辑</Button>
-          <Popconfirm title='确认删除？' onConfirm={() => remove(m)}>
-            <Button type='link' size='small' danger>删除</Button>
-          </Popconfirm>
+          <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认删除？', content: `确定删除设备「${m.name}」吗？删除后不可恢复。`, danger: true, onOk: () => remove(m) })}>删除</Button>
         </Space>
       )
     }
@@ -99,7 +99,7 @@ export default function Devices() {
         onChange={(pg) => load(pg.current || 1)}
       />
       <Modal title={editing ? '编辑设备' : '新增设备'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={640}>
-        <Form form={form} layout='vertical' initialValues={{ category: '挖掘机', status: 'available', stock: 0, recommended: false }}>
+        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }} initialValues={{ category: '挖掘机', status: 'available', stock: 0, recommended: false }}>
           <Form.Item name='name' label='设备名称' rules={[{ required: true, message: '请填写设备名称' }]}>
             <Input placeholder='如：液压挖掘机' />
           </Form.Item>

@@ -68,14 +68,12 @@ export default function Index() {
   const hour = new Date().getHours()
   const greeting = hour < 12 ? '上午好' : hour < 18 ? '下午好' : '晚上好'
 
-  function StatCard({ label, value, color, onClick }: { label: string; value: string | number; color: string; onClick?: () => void }) {
-    return (
-      <View className='stat-card' onClick={onClick} hoverClass='stat-card-hover'>
-        <Text className='stat-value' style={{ color }}>{value}</Text>
-        <Text className='stat-label'>{label}</Text>
-      </View>
-    )
-  }
+  const statItems = [
+    { label: '设备总数', value: deviceCount, color: '#FF6B1A', onClick: () => switchTo('/pages/device-list/index') },
+    { label: '待办工单', value: stats?.myTodos ?? 0, color: '#F59E0B', onClick: () => switchTo('/pages/workorder-list/index') },
+    { label: '处理中', value: (stats?.assigned ?? 0) + (stats?.processing ?? 0), color: '#0EA5E9', onClick: () => switchTo('/pages/workorder-list/index') },
+    { label: '已完成', value: stats?.done ?? 0, color: '#0E9F6E', onClick: () => switchTo('/pages/workorder-list/index') }
+  ]
 
   return (
     <ScrollView scrollY className='home-page'>
@@ -97,11 +95,13 @@ export default function Index() {
         </View>
 
         {/* 统计卡 */}
-        <View className='stat-grid'>
-          <StatCard label='设备总数' value={deviceCount} color='#FFFFFF' />
-          <StatCard label='待办工单' value={stats?.myTodos ?? 0} color='#FFD9B8' />
-          <StatCard label='处理中' value={(stats?.assigned ?? 0) + (stats?.processing ?? 0)} color='#BBDCFF' />
-          <StatCard label='已完成' value={stats?.done ?? 0} color='#C8F7DE' />
+        <View className='hs-stat-panel'>
+          {statItems.map((s) => (
+            <View key={s.label} className='hs-stat-item' hoverClass='hs-stat-hover' onClick={s.onClick}>
+              <Text className='hs-stat-num' style={{ color: s.color }}>{s.value}</Text>
+              <Text className='hs-stat-lab'>{s.label}</Text>
+            </View>
+          ))}
         </View>
       </View>
 

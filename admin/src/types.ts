@@ -281,3 +281,21 @@ export interface StatsData {
   rentals: Record<string, number>
   maintenanceDevices: Machinery[]
 }
+
+export interface ChartsData {
+  deviceCategory: Record<string, number>
+  deviceBrand: Record<string, number>
+  workOrderByStatus: { status: string; count: number }[]
+  workOrderByMonth: { month: string; count: number }[]
+  projectByStatus: Record<string, number>
+  rentalByStatus: Record<string, number>
+  purchaseByStatus: Record<string, number>
+  purchaseByMonth: { month: string; amount: number }[]
+  approvalByStatus: Record<string, number>
+  approvalByMonth: { month: string; count: number }[]
+  contractByStatus: Record<string, number>
+  stockValueByCategory: Record<string, number>
+  supplierByCategory: Record<string, number>
+  userByRole: Record<string, number>
+  orgCount: number
+}

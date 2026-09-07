@@ -4,14 +4,15 @@ import type { ColumnsType } from 'antd/es/table'
 import { get, post, qs } from '../api'
 import type { Pagination, User, WorkOrder } from '../types'
 import { StatusTag, workOrderStatus, priorityLabel, roleLabel } from '../meta'
+import { useCachedState } from '../useCachedState'
 
 export default function WorkOrders() {
   const [list, setList] = useState<WorkOrder[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useCachedState('wo_page', 1)
   const [pageSize] = useState(10)
-  const [status, setStatus] = useState('')
-  const [keyword, setKeyword] = useState('')
+  const [status, setStatus] = useCachedState('wo_status', '')
+  const [keyword, setKeyword] = useCachedState('wo_keyword', '')
   const [detail, setDetail] = useState<WorkOrder | null>(null)
   const [users, setUsers] = useState<User[]>([])
   const [assignTarget, setAssignTarget] = useState<WorkOrder | null>(null)

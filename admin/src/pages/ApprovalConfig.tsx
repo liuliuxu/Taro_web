@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Tabs, Table, Button, Modal, Form, Input, Select, Space, message, Popconfirm, Switch, Tag } from 'antd'
+import { Tabs, Table, Button, Modal, Form, Input, Select, Space, message, Switch, Tag } from 'antd'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { get, post, del } from '../api'
 import type { OptionSet, FormDefinition, ProcessDefinition, Org, Pagination, User } from '../types'
+import { confirmAction } from '../confirm'
 
 interface FieldDef { key: string; label: string; type: string; required?: boolean; options?: { label: string; value: string }[]; optionSetCode?: string }
 interface NodeDef { name: string; approverType: string; approverValue: string }
@@ -159,10 +160,8 @@ export default function ApprovalConfig() {
                     render: (_, p) => (
                       <Space size={0}>
                         <Button type='link' size='small' onClick={() => openProcEdit(p)}>编辑</Button>
-                        <Button type='link' size='small' onClick={() => togglePublish(p)}>{p.status === 'published' ? '下线' : '发布'}</Button>
-                        <Popconfirm title='确认删除？' onConfirm={async () => { await del(`/admin/approval/processes/${p.id}`); message.success('已删除'); loadAll() }}>
-                          <Button type='link' size='small' danger>删除</Button>
-                        </Popconfirm>
+                        <Button type='link' size='small' onClick={() => confirmAction({ title: p.status === 'published' ? '确认下线' : '确认发布', content: p.status === 'published' ? `确定下线流程「${p.name}」吗？` : `确定发布流程「${p.name}」吗？`, danger: p.status === 'published', onOk: () => togglePublish(p) })}>{p.status === 'published' ? '下线' : '发布'}</Button>
+                        <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认删除？', content: `确定删除流程「${p.name}」吗？`, danger: true, onOk: async () => { await del(`/admin/approval/processes/${p.id}`); message.success('已删除'); loadAll() } })}>删除</Button>
                       </Space>
                     )
                   }
@@ -192,9 +191,7 @@ export default function ApprovalConfig() {
                     render: (_, f) => (
                       <Space size={0}>
                         <Button type='link' size='small' onClick={() => openFormEdit(f)}>编辑</Button>
-                        <Popconfirm title='确认删除？' onConfirm={async () => { await del(`/admin/approval/forms/${f.id}`); message.success('已删除'); loadAll() }}>
-                          <Button type='link' size='small' danger>删除</Button>
-                        </Popconfirm>
+                        <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认删除？', content: `确定删除表单「${f.name}」吗？将影响关联流程。`, danger: true, onOk: async () => { await del(`/admin/approval/forms/${f.id}`); message.success('已删除'); loadAll() } })}>删除</Button>
                       </Space>
                     )
                   }
@@ -224,9 +221,7 @@ export default function ApprovalConfig() {
                     render: (_, o) => (
                       <Space size={0}>
                         <Button type='link' size='small' onClick={() => { osForm.setFieldsValue(o); setOsModal(true) }}>编辑</Button>
-                        <Popconfirm title='确认删除？' onConfirm={async () => { await del(`/admin/approval/option-sets/${o.id}`); message.success('已删除'); loadAll() }}>
-                          <Button type='link' size='small' danger>删除</Button>
-                        </Popconfirm>
+                        <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认删除？', content: `确定删除选项集「${o.code} · ${o.name}」吗？`, danger: true, onOk: async () => { await del(`/admin/approval/option-sets/${o.id}`); message.success('已删除'); loadAll() } })}>删除</Button>
                       </Space>
                     )
                   }
@@ -237,7 +232,7 @@ export default function ApprovalConfig() {
       ]} />
 
       <Modal title='选项集' open={osModal} onOk={saveOptionSet} onCancel={() => setOsModal(false)} destroyOnClose width={560}>
-        <Form form={osForm} layout='vertical'>
+        <Form form={osForm} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
           <Form.Item name='code' label='编码' rules={[{ required: true, message: '请填写编码' }]}><Input /></Form.Item>
           <Form.Item name='name' label='名称' rules={[{ required: true, message: '请填写名称' }]}><Input /></Form.Item>
           <Form.Item name='optionsJson' label='选项（JSON）' extra='格式：[{"label":"设备部","value":"equipment"}]'
@@ -249,7 +244,7 @@ export default function ApprovalConfig() {
       </Modal>
 
       <Modal title={formMeta ? '编辑表单' : '新建表单'} open={formModal} onOk={saveForm} onCancel={() => setFormModal(false)} width={820}>
-        <Form form={fform} layout='vertical'>
+        <Form form={fform} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='name' label='表单名称' rules={[{ required: true, message: '请填写名称' }]}><Input /></Form.Item>
             <Form.Item name='bizType' label='业务类型（回调用：purchase/rental/workorder_cost/disposal）'><Input /></Form.Item>
@@ -285,7 +280,7 @@ export default function ApprovalConfig() {
       </Modal>
 
       <Modal title={procMeta ? '编辑流程' : '新建流程'} open={procModal} onOk={saveProcess} onCancel={() => setProcModal(false)} width={720}>
-        <Form form={pform} layout='vertical'>
+        <Form form={pform} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='name' label='流程名称' rules={[{ required: true, message: '请填写名称' }]}><Input /></Form.Item>
             <Form.Item name='formId' label='关联表单' rules={[{ required: true, message: '请选择表单' }]}>

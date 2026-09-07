@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, Select, Space, message, Popconfirm, Tag } from 'antd'
+import { Table, Button, Modal, Form, Input, Select, Space, message, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { get, post, put, del, qs } from '../api'
 import type { Supplier } from '../types'
+import { confirmAction } from '../confirm'
+import { useCachedState } from '../useCachedState'
 
 export default function Suppliers() {
   const [list, setList] = useState<Supplier[]>([])
-  const [keyword, setKeyword] = useState('')
+  const [keyword, setKeyword] = useCachedState('sp_keyword', '')
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<Supplier | null>(null)
   const [form] = Form.useForm()
@@ -59,13 +61,11 @@ export default function Suppliers() {
     { title: '信用等级', dataIndex: 'creditLevel', render: (v) => <Tag color={v === 'A' ? 'green' : v === 'B' ? 'blue' : 'orange'}>{v}</Tag> },
     { title: '状态', dataIndex: 'status', render: (v) => (v === 'enabled' ? '启用' : '停用') },
     {
-      title: '操作', width: 130,
+      title: '操作', width: 140,
       render: (_, s) => (
         <Space>
           <Button type='link' size='small' onClick={() => openEdit(s)}>编辑</Button>
-          <Popconfirm title='确认删除？' onConfirm={() => remove(s)}>
-            <Button type='link' size='small' danger>删除</Button>
-          </Popconfirm>
+          <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认删除？', content: `确定删除供应商「${s.name}」吗？`, danger: true, onOk: () => remove(s) })}>删除</Button>
         </Space>
       )
     }
@@ -78,8 +78,8 @@ export default function Suppliers() {
         <Button type='primary' icon={<PlusOutlined />} onClick={openCreate}>新增供应商</Button>
       </Space>
       <Table rowKey='id' dataSource={list} columns={columns} size='small' pagination={false} />
-      <Modal title={editing ? '编辑供应商' : '新增供应商'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose>
-        <Form form={form} layout='vertical'>
+      <Modal title={editing ? '编辑供应商' : '新增供应商'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={680}>
+        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
           <Form.Item name='name' label='供应商名称' rules={[{ required: true, message: '请填写名称' }]}><Input /></Form.Item>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='contact' label='联系人'><Input /></Form.Item>

@@ -1,5 +1,8 @@
 package com.heavymachinery.config;
 
+import com.heavymachinery.entity.ApprovalInstance;
+import com.heavymachinery.entity.ApprovalTask;
+import com.heavymachinery.entity.Contract;
 import com.heavymachinery.entity.DispatchTask;
 import com.heavymachinery.entity.Announcement;
 import com.heavymachinery.entity.FormDefinition;
@@ -8,12 +11,16 @@ import com.heavymachinery.entity.OptionSet;
 import com.heavymachinery.entity.Org;
 import com.heavymachinery.entity.ProcessDefinition;
 import com.heavymachinery.entity.Project;
+import com.heavymachinery.entity.PurchaseOrder;
 import com.heavymachinery.entity.RentalContract;
 import com.heavymachinery.entity.SparePart;
 import com.heavymachinery.entity.Supplier;
 import com.heavymachinery.entity.User;
 import com.heavymachinery.entity.WorkOrder;
 import com.heavymachinery.repository.AnnouncementRepository;
+import com.heavymachinery.repository.ApprovalInstanceRepository;
+import com.heavymachinery.repository.ApprovalTaskRepository;
+import com.heavymachinery.repository.ContractRepository;
 import com.heavymachinery.repository.DispatchTaskRepository;
 import com.heavymachinery.repository.FormDefinitionRepository;
 import com.heavymachinery.repository.MachineryRepository;
@@ -21,11 +28,13 @@ import com.heavymachinery.repository.OptionSetRepository;
 import com.heavymachinery.repository.OrgRepository;
 import com.heavymachinery.repository.ProcessDefinitionRepository;
 import com.heavymachinery.repository.ProjectRepository;
+import com.heavymachinery.repository.PurchaseOrderRepository;
 import com.heavymachinery.repository.RentalContractRepository;
 import com.heavymachinery.repository.SparePartRepository;
 import com.heavymachinery.repository.SupplierRepository;
 import com.heavymachinery.repository.UserRepository;
 import com.heavymachinery.repository.WorkOrderRepository;
+import com.heavymachinery.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -36,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -58,6 +68,10 @@ public class DataInitializer implements CommandLineRunner {
     private final AnnouncementRepository announcementRepository;
     private final SupplierRepository supplierRepository;
     private final SparePartRepository sparePartRepository;
+    private final ApprovalInstanceRepository approvalInstanceRepository;
+    private final ApprovalTaskRepository approvalTaskRepository;
+    private final PurchaseOrderRepository purchaseOrderRepository;
+    private final ContractRepository contractRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UserRepository userRepository,
@@ -73,6 +87,10 @@ public class DataInitializer implements CommandLineRunner {
                            AnnouncementRepository announcementRepository,
                            SupplierRepository supplierRepository,
                            SparePartRepository sparePartRepository,
+                           ApprovalInstanceRepository approvalInstanceRepository,
+                           ApprovalTaskRepository approvalTaskRepository,
+                           PurchaseOrderRepository purchaseOrderRepository,
+                           ContractRepository contractRepository,
                            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.machineryRepository = machineryRepository;
@@ -87,6 +105,10 @@ public class DataInitializer implements CommandLineRunner {
         this.announcementRepository = announcementRepository;
         this.supplierRepository = supplierRepository;
         this.sparePartRepository = sparePartRepository;
+        this.approvalInstanceRepository = approvalInstanceRepository;
+        this.approvalTaskRepository = approvalTaskRepository;
+        this.purchaseOrderRepository = purchaseOrderRepository;
+        this.contractRepository = contractRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -117,6 +139,7 @@ public class DataInitializer implements CommandLineRunner {
         if (sparePartRepository.count() == 0) {
             initSpareParts(rootOrgId);
         }
+        enrichBusinessData(rootOrgId);
     }
 
     private Long ensureRootOrg() {
@@ -510,5 +533,162 @@ public class DataInitializer implements CommandLineRunner {
         p.setWarehouse(warehouse);
         p.setOrgId(rootOrgId);
         sparePartRepository.save(p);
+    }
+
+    /**
+     * 图表数据补全：当业务数据量偏少时，补充近6个月的历史工单/审批/采购，
+     * 让数据图表与趋势更有参考价值。仅在数量不足时增量插入，不污染已有数据。
+     */
+    private void enrichBusinessData(Long rootOrgId) {
+        List<Machinery> machines = machineryRepository.findAll();
+        if (machines.isEmpty()) {
+            return;
+        }
+        User operator = userRepository.findByUsername("operator").orElse(null);
+        User manager = userRepository.findByUsername("manager").orElse(null);
+        Long opId = operator != null ? operator.getId() : 3L;
+        String opName = operator != null ? operator.getNickname() : "一线维修工";
+        Long mgrId = manager != null ? manager.getId() : 2L;
+        String mgrName = manager != null ? manager.getNickname() : "设备负责人";
+
+        long woCount = workOrderRepository.count();
+        if (woCount < 24) {
+            String[] titles = {"液压系统清洗检查", "履带张紧度调整", "蓄电池维护更换", "制动系统检测", "传动皮带更换", "冷却液补充检查", "行走马达异响排查", "润滑系统保养"};
+            String[] types = {"repair", "maintain"};
+            String[] statuses = {"done", "done", "done", "done", "processing", "review", "assigned", "created"};
+            String[] prios = {"medium", "medium", "high", "low", "urgent", "high", "medium", "low"};
+            for (int i = 0; i < 18; i++) {
+                Machinery m = machines.get(ThreadLocalRandom.current().nextInt(machines.size()));
+                int monthOffset = ThreadLocalRandom.current().nextInt(0, 6);
+                LocalDateTime created = LocalDateTime.now().minusMonths(monthOffset)
+                        .minusDays(ThreadLocalRandom.current().nextInt(0, 15))
+                        .minusHours(ThreadLocalRandom.current().nextInt(0, 12));
+                WorkOrder wo = new WorkOrder();
+                wo.setWorkNo("WO" + System.currentTimeMillis() + ThreadLocalRandom.current().nextInt(1000, 9999));
+                wo.setOrgId(m.getOrgId() != null ? m.getOrgId() : rootOrgId);
+                wo.setMachineryId(m.getId());
+                wo.setMachineryName(m.getName());
+                wo.setTitle(titles[ThreadLocalRandom.current().nextInt(titles.length)] + "（" + m.getName() + "）");
+                wo.setType(types[ThreadLocalRandom.current().nextInt(types.length)]);
+                wo.setPriority(prios[ThreadLocalRandom.current().nextInt(prios.length)]);
+                String st = statuses[ThreadLocalRandom.current().nextInt(statuses.length)];
+                wo.setStatus(st);
+                wo.setReportUserId(mgrId);
+                wo.setReportUserName(mgrName);
+                if (!"created".equals(st)) {
+                    wo.setAssigneeUserId(opId);
+                    wo.setAssigneeName(opName);
+                    wo.setAssignedAt(created.plusDays(1));
+                }
+                if ("done".equals(st)) {
+                    wo.setCompletedAt(created.plusDays(ThreadLocalRandom.current().nextInt(2, 6)));
+                    wo.setHandleNote("已按规范完成检修保养");
+                    wo.setCost(new BigDecimal(ThreadLocalRandom.current().nextInt(200, 3000)));
+                } else if ("processing".equals(st) || "review".equals(st)) {
+                    wo.setHandleNote("检修中，已初步排查");
+                }
+                wo.setReportedAt(created.minusDays(1));
+                workOrderRepository.save(wo);
+            }
+            log.info("已补充 {} 条历史工单（图表数据）", 18);
+        }
+
+        long apCount = approvalInstanceRepository.count();
+        if (apCount < 15) {
+            List<ProcessDefinition> processes = processDefinitionRepository.findAll();
+            Long formId = processes.isEmpty() ? null : processes.get(0).getFormId();
+            for (int i = 0; i < 12; i++) {
+                int monthOffset = ThreadLocalRandom.current().nextInt(0, 6);
+                LocalDateTime created = LocalDateTime.now().minusMonths(monthOffset)
+                        .minusDays(ThreadLocalRandom.current().nextInt(0, 20));
+                boolean approved = ThreadLocalRandom.current().nextBoolean();
+                ApprovalInstance ai = new ApprovalInstance();
+                ai.setApprovalNo("AP" + System.currentTimeMillis() + ThreadLocalRandom.current().nextInt(100, 999));
+                ai.setOrgId(rootOrgId);
+                ai.setBizType("common");
+                ai.setTitle("设备维护费用申请 " + (ThreadLocalRandom.current().nextInt(1000, 9999)));
+                ai.setStatus(approved ? "approved" : "rejected");
+                ai.setApplicantId(mgrId);
+                ai.setApplicantName(mgrName);
+                ai.setFormId(formId);
+                ai.setFormDataJson("{\"amount\":" + ThreadLocalRandom.current().nextInt(500, 50000) + ",\"title\":\"设备维护费用申请\"}");
+                ai.setCurrentNodeIndex(approved ? 2 : 1);
+                ai.setCurrentNodeName(approved ? "系统管理员审批" : "部门主管审批");
+                ai.setFinishedAt(created.plusDays(ThreadLocalRandom.current().nextInt(1, 4)));
+                ai = approvalInstanceRepository.save(ai);
+
+                ApprovalTask t1 = new ApprovalTask();
+                t1.setInstanceId(ai.getId());
+                t1.setNodeIndex(0);
+                t1.setNodeName("部门主管审批");
+                t1.setStatus("approved");
+                t1.setHandledById(mgrId);
+                t1.setHandledByName(mgrName);
+                t1.setHandledAt(created.plusDays(1));
+                approvalTaskRepository.save(t1);
+
+                ApprovalTask t2 = new ApprovalTask();
+                t2.setInstanceId(ai.getId());
+                t2.setNodeIndex(1);
+                t2.setNodeName("系统管理员审批");
+                t2.setStatus(approved ? "approved" : "rejected");
+                if (approved) {
+                    t2.setHandledById(1L);
+                    t2.setHandledByName("系统管理员");
+                    t2.setHandledAt(created.plusDays(2));
+                }
+                approvalTaskRepository.save(t2);
+            }
+            log.info("已补充 {} 条历史审批实例（图表数据）", 12);
+        }
+
+        if (purchaseOrderRepository.count() < 8) {
+            String[] items = {"液压油滤芯", "发动机机油", "铲斗油封", "空气滤芯", "耐磨斗齿", "行走马达维修包"};
+            for (int i = 0; i < 8; i++) {
+                int monthOffset = ThreadLocalRandom.current().nextInt(0, 6);
+                LocalDateTime created = LocalDateTime.now().minusMonths(monthOffset)
+                        .minusDays(ThreadLocalRandom.current().nextInt(0, 20));
+                BigDecimal qty = new BigDecimal(ThreadLocalRandom.current().nextInt(2, 30));
+                BigDecimal price = new BigDecimal(ThreadLocalRandom.current().nextInt(80, 2000));
+                PurchaseOrder po = new PurchaseOrder();
+                po.setOrderNo("PO" + System.currentTimeMillis() + ThreadLocalRandom.current().nextInt(1000, 9999));
+                po.setOrgId(rootOrgId);
+                po.setItemName(items[ThreadLocalRandom.current().nextInt(items.length)]);
+                po.setSupplierName("徐工集团配件供应中心");
+                po.setQuantity(qty);
+                po.setUnit("件");
+                po.setUnitPrice(price);
+                po.setTotalAmount(price.multiply(qty));
+                po.setStatus("received");
+                po.setApplicantId(opId);
+                po.setApplicantName(opName);
+                purchaseOrderRepository.save(po);
+            }
+            log.info("已补充 {} 条历史采购单（图表数据）", 8);
+        }
+
+        if (contractRepository.count() < 6) {
+            String[] types = {"purchase", "purchase", "sale", "sale", "rental", "service"};
+            String[] customers = {"华东工程建设有限公司", "湖南路桥建设集团", "中建八局第三建设", "山东高速养护中心", "川交路桥建设有限公司"};
+            String[] statuses = {"active", "active", "draft", "finished", "cancelled", "active"};
+            for (int i = 0; i < 6; i++) {
+                int monthOffset = ThreadLocalRandom.current().nextInt(0, 6);
+                LocalDateTime created = LocalDateTime.now().minusMonths(monthOffset)
+                        .minusDays(ThreadLocalRandom.current().nextInt(0, 20));
+                Contract ct = new Contract();
+                ct.setContractNo("CT" + System.currentTimeMillis() + ThreadLocalRandom.current().nextInt(1000, 9999));
+                ct.setOrgId(rootOrgId);
+                ct.setType(types[i]);
+                ct.setCustomerName(customers[ThreadLocalRandom.current().nextInt(customers.length)]);
+                ct.setContact("王经理");
+                ct.setPhone("13800000000");
+                ct.setAmount(new BigDecimal(ThreadLocalRandom.current().nextInt(80000, 800000)));
+                ct.setStartDate(created.toLocalDate());
+                ct.setEndDate(created.toLocalDate().plusMonths(ThreadLocalRandom.current().nextInt(2, 24)));
+                ct.setStatus(statuses[i]);
+                contractRepository.save(ct);
+            }
+            log.info("已补充 {} 条历史合同（图表数据）", 6);
+        }
     }
 }

@@ -12,6 +12,7 @@
   --amber: #FFB03A;
 
   --bg: #F3F5F7;             /* 页面背景 */
+  --bg-2: #EFF2F5;           /* 次级背景（输入框等） */
   --card: #FFFFFF;
   --line: #ECEFF3;
   --border: #ECEEF2;
@@ -28,6 +29,46 @@
   --radius-lg: 24px;
   --radius-md: 16px;
   --radius-sm: 12px;
+}
+
+/* 深色主题（data-theme="dark"） */
+:root[data-theme='dark'] {
+  --ink: #EAF0F6;
+  --ink-2: #C7D3E0;
+  --ink-3: #9FB0C2;
+  --orange: #FF8A3D;
+  --orange-deep: #FF6B1A;
+  --orange-soft: #2A1D14;
+  --amber: #FFC24B;
+
+  --bg: #0F1620;
+  --bg-2: #1A2432;
+  --card: #16212E;
+  --line: #223041;
+  --border: #223041;
+
+  --text-1: #EAF0F6;
+  --text-2: #B6C3D0;
+  --text-3: #7E8FA0;
+
+  --green: #34D399;
+  --red: #F87171;
+  --shadow-1: 0 6px 20px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+/* 主题色：墨绿 */
+:root[data-color='green'] {
+  --orange: #16A34A;
+  --orange-deep: #15803D;
+  --orange-soft: #E8F6EE;
+}
+
+/* 主题色：科技蓝 */
+:root[data-color='blue'] {
+  --orange: #0E86D4;
+  --orange-deep: #0369A1;
+  --orange-soft: #E8F2FB;
 }
 
 page {

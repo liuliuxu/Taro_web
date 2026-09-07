@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { ThemeProvider } from './theme'
 import Login from './pages/Login'
 import Layout from './pages/Layout'
 import Dashboard from './pages/Dashboard'
+import Charts from './pages/Charts'
 import Devices from './pages/Devices'
 import WorkOrders from './pages/WorkOrders'
 import Users from './pages/Users'
@@ -26,36 +28,39 @@ function RequireAuth({ children }: { children: React.ReactElement }) {
 
 export default function App() {
   return (
-    <HashRouter>
-      <Routes>
-        <Route path='/login' element={<Login />} />
-        <Route
-          path='/'
-          element={
-            <RequireAuth>
-              <Layout />
-            </RequireAuth>
-          }
-        >
-          <Route index element={<Navigate to='/dashboard' replace />} />
-          <Route path='dashboard' element={<Dashboard />} />
-          <Route path='devices' element={<Devices />} />
-          <Route path='workorders' element={<WorkOrders />} />
-          <Route path='users' element={<Users />} />
-          <Route path='projects' element={<Projects />} />
-          <Route path='rentals' element={<Rentals />} />
-          <Route path='orgs' element={<Orgs />} />
-          <Route path='suppliers' element={<Suppliers />} />
-          <Route path='purchases' element={<Purchases />} />
-          <Route path='spare-parts' element={<SpareParts />} />
-          <Route path='inspection' element={<Inspection />} />
-          <Route path='announcements' element={<Announcements />} />
-          <Route path='contracts' element={<Contracts />} />
-          <Route path='approval/config' element={<ApprovalConfig />} />
-          <Route path='approval/instances' element={<ApprovalInstances />} />
-        </Route>
-        <Route path='*' element={<Navigate to='/' replace />} />
-      </Routes>
-    </HashRouter>
+    <ThemeProvider>
+      <HashRouter>
+        <Routes>
+          <Route path='/login' element={<Login />} />
+          <Route
+            path='/'
+            element={
+              <RequireAuth>
+                <Layout />
+              </RequireAuth>
+            }
+          >
+            <Route index element={<Navigate to='/dashboard' replace />} />
+            <Route path='dashboard' element={<Dashboard />} />
+            <Route path='charts' element={<Charts />} />
+            <Route path='devices' element={<Devices />} />
+            <Route path='workorders' element={<WorkOrders />} />
+            <Route path='users' element={<Users />} />
+            <Route path='projects' element={<Projects />} />
+            <Route path='rentals' element={<Rentals />} />
+            <Route path='orgs' element={<Orgs />} />
+            <Route path='suppliers' element={<Suppliers />} />
+            <Route path='purchases' element={<Purchases />} />
+            <Route path='spare-parts' element={<SpareParts />} />
+            <Route path='inspection' element={<Inspection />} />
+            <Route path='announcements' element={<Announcements />} />
+            <Route path='contracts' element={<Contracts />} />
+            <Route path='approval/config' element={<ApprovalConfig />} />
+            <Route path='approval/instances' element={<ApprovalInstances />} />
+          </Route>
+          <Route path='*' element={<Navigate to='/' replace />} />
+        </Routes>
+      </HashRouter>
+    </ThemeProvider>
   )
 }

@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, InputNumber, Select, Space, message, Popconfirm, Tag, Card } from 'antd'
+import { Table, Button, Modal, Form, Input, InputNumber, Select, Space, message, Tag, Card } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { get, post, put, del, qs } from '../api'
 import type { SparePart, StockRecord } from '../types'
 import { fmtMoney } from '../meta'
+import { confirmAction } from '../confirm'
+import { useCachedState } from '../useCachedState'
 
 interface StockRecordRow { id: number; type: string; qty?: number; unit?: string; relateNo?: string; operatorName?: string; remark?: string; createdAt?: string }
 
 export default function SpareParts() {
   const [list, setList] = useState<SparePart[]>([])
   const [records, setRecords] = useState<StockRecordRow[]>([])
-  const [keyword, setKeyword] = useState('')
-  const [category, setCategory] = useState('')
+  const [keyword, setKeyword] = useCachedState('spp_keyword', '')
+  const [category, setCategory] = useCachedState('spp_category', '')
   const [lowStock, setLowStock] = useState(false)
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<SparePart | null>(null)
@@ -82,15 +84,13 @@ export default function SpareParts() {
     { title: '单价（元）', dataIndex: 'price' },
     { title: '库房', dataIndex: 'warehouse' },
     {
-      title: '操作', width: 190,
+      title: '操作', width: 200,
       render: (_, p) => (
         <Space size={0}>
           <Button type='link' size='small' onClick={() => { setStockTarget(p); setStockType('in'); setStockQty(1) }}>入库</Button>
           <Button type='link' size='small' onClick={() => { setStockTarget(p); setStockType('out'); setStockQty(1) }}>出库</Button>
           <Button type='link' size='small' onClick={() => openEdit(p)}>编辑</Button>
-          <Popconfirm title='确认删除？' onConfirm={() => remove(p)}>
-            <Button type='link' size='small' danger>删除</Button>
-          </Popconfirm>
+          <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认删除？', content: `确定删除备件「${p.name}」吗？`, danger: true, onOk: () => remove(p) })}>删除</Button>
         </Space>
       )
     }
@@ -118,8 +118,8 @@ export default function SpareParts() {
             { title: '时间', dataIndex: 'createdAt' }
           ]} />
       </Card>
-      <Modal title={editing ? '编辑备件' : '新增备件'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose>
-        <Form form={form} layout='vertical'>
+      <Modal title={editing ? '编辑备件' : '新增备件'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={680}>
+        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='partNo' label='编号' rules={[{ required: true, message: '请填写编号' }]}><Input /></Form.Item>
             <Form.Item name='name' label='名称' rules={[{ required: true, message: '请填写名称' }]}><Input /></Form.Item>

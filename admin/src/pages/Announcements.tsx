@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, Select, Space, message, Popconfirm, Tag } from 'antd'
+import { Table, Button, Modal, Form, Input, Select, Space, message, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { get, post, put, del, qs } from '../api'
 import type { Announcement } from '../types'
 import { fmtDateTime } from '../meta'
+import { confirmAction } from '../confirm'
+import { useCachedState } from '../useCachedState'
 
 export default function Announcements() {
   const [list, setList] = useState<Announcement[]>([])
-  const [keyword, setKeyword] = useState('')
+  const [keyword, setKeyword] = useCachedState('an_keyword', '')
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<Announcement | null>(null)
   const [form] = Form.useForm()
@@ -58,13 +60,11 @@ export default function Announcements() {
     { title: '发布人', dataIndex: 'publisherName' },
     { title: '发布时间', dataIndex: 'createdAt', render: fmtDateTime },
     {
-      title: '操作', width: 130,
+      title: '操作', width: 140,
       render: (_, a) => (
         <Space>
           <Button type='link' size='small' onClick={() => openEdit(a)}>编辑</Button>
-          <Popconfirm title='确认删除？' onConfirm={() => remove(a)}>
-            <Button type='link' size='small' danger>删除</Button>
-          </Popconfirm>
+          <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认删除？', content: `确定删除公告「${a.title}」吗？`, danger: true, onOk: () => remove(a) })}>删除</Button>
         </Space>
       )
     }
@@ -80,8 +80,8 @@ export default function Announcements() {
         expandable={{
           expandedRowRender: (a) => <div style={{ whiteSpace: 'pre-wrap', color: '#555' }}>{a.content || ''}</div>
         }} />
-      <Modal title={editing ? '编辑公告' : '发布公告'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose>
-        <Form form={form} layout='vertical'>
+      <Modal title={editing ? '编辑公告' : '发布公告'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={680}>
+        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
           <Form.Item name='title' label='标题' rules={[{ required: true, message: '请填写标题' }]}><Input /></Form.Item>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='type' label='类型'>

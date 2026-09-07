@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table'
 import { get, post, qs } from '../api'
 import type { ApprovalInstance, FormDefinition, ApprovalTask } from '../types'
 import { StatusTag, approvalStatus, fmtDateTime } from '../meta'
+import { confirmAction } from '../confirm'
 
 interface Detail {
   instance: ApprovalInstance
@@ -119,8 +120,8 @@ export default function ApprovalInstances() {
               <div style={{ marginTop: 16 }}>
                 <Input.TextArea rows={2} placeholder='审批意见' value={comment} onChange={(e) => setComment(e.target.value)} />
                 <Space style={{ marginTop: 8 }}>
-                  <Button type='primary' onClick={() => act('approve')}>通过</Button>
-                  <Button danger onClick={() => act('reject')}>驳回</Button>
+                  <Button type='primary' onClick={() => confirmAction({ title: '确认通过', content: '确定通过该审批单吗？', onOk: () => act('approve') })}>通过</Button>
+                  <Button danger onClick={() => confirmAction({ title: '确认驳回', content: '确定驳回该审批单吗？', danger: true, onOk: () => act('reject') })}>驳回</Button>
                 </Space>
               </div>
             )}

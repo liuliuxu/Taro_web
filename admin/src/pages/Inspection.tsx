@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, InputNumber, Select, Space, message, Popconfirm, Tag } from 'antd'
+import { Table, Button, Modal, Form, Input, InputNumber, Select, Space, message, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { get, post, put, del, qs } from '../api'
 import type { InspectionPlan, Pagination, Machinery, User } from '../types'
 import { StatusTag, inspectionStatus, fmtDate } from '../meta'
+import { confirmAction } from '../confirm'
+import { useCachedState } from '../useCachedState'
 
 export default function Inspection() {
   const [list, setList] = useState<InspectionPlan[]>([])
   const [machines, setMachines] = useState<Machinery[]>([])
   const [users, setUsers] = useState<User[]>([])
-  const [status, setStatus] = useState('')
+  const [status, setStatus] = useCachedState('inp_status', '')
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<InspectionPlan | null>(null)
   const [form] = Form.useForm()
@@ -72,13 +74,11 @@ export default function Inspection() {
     { title: '上次完成', dataIndex: 'lastDoneAt', render: fmtDate },
     { title: '状态', dataIndex: 'status', render: (v) => <StatusTag status={v} map={inspectionStatus} /> },
     {
-      title: '操作', width: 130,
+      title: '操作', width: 140,
       render: (_, p) => (
         <Space>
           <Button type='link' size='small' onClick={() => openEdit(p)}>编辑</Button>
-          <Popconfirm title='确认删除？' onConfirm={() => remove(p)}>
-            <Button type='link' size='small' danger>删除</Button>
-          </Popconfirm>
+          <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认删除？', content: `确定删除「${p.machineryName}」的巡检保养计划吗？`, danger: true, onOk: () => remove(p) })}>删除</Button>
         </Space>
       )
     }
@@ -99,7 +99,7 @@ export default function Inspection() {
       </Space>
       <Table rowKey='id' dataSource={list} columns={columns} size='small' pagination={false} />
       <Modal title={editing ? '编辑计划' : '新增巡检/保养计划'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={640}>
-        <Form form={form} layout='vertical'>
+        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='machineryId' label='设备' rules={[{ required: true, message: '请选择设备' }]}>
               <Select showSearch optionFilterProp='label' options={machines.map((m) => ({ value: m.id, label: m.name }))} />

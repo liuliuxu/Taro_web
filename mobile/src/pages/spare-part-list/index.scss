@@ -5,6 +5,7 @@
 
 .sp-search {
   display: flex;
+  align-items: center;
   gap: 16px;
   padding: 20px 24px;
   background: #fff;
@@ -12,14 +13,21 @@
 
 .sp-input {
   flex: 1;
+  height: 72px;
   background: var(--bg-2);
   border-radius: 12px;
-  padding: 14px 20px;
+  padding: 0 20px;
   font-size: 26px;
+  line-height: 72px;
 }
 
 .sp-search-btn {
-  padding: 14px 28px;
+  flex-shrink: 0;
+  height: 72px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #FF6B1A;
   color: #fff;
   border-radius: 12px;

@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, Select, Space, message, Popconfirm, Tag } from 'antd'
+import { Table, Button, Modal, Form, Input, Select, Space, message, Tag } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { get, post, put, del, qs } from '../api'
 import type { Org, User } from '../types'
 import { roleLabel } from '../meta'
+import { confirmAction } from '../confirm'
+import { useCachedState } from '../useCachedState'
 
 const ROLES = ['admin', 'manager', 'operator', 'customer']
 
 export default function UsersPage() {
   const [list, setList] = useState<User[]>([])
   const [orgs, setOrgs] = useState<Org[]>([])
-  const [keyword, setKeyword] = useState('')
-  const [role, setRole] = useState('')
+  const [keyword, setKeyword] = useCachedState('us_keyword', '')
+  const [role, setRole] = useCachedState('us_role', '')
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
   const [form] = Form.useForm()
@@ -84,14 +86,12 @@ export default function UsersPage() {
       } },
     { title: '创建时间', dataIndex: 'createdAt', render: (d) => d?.slice(0, 10) || '—' },
     {
-      title: '操作', width: 130,
+      title: '操作', width: 140,
       render: (_, u) => (
         <Space>
           <Button type='link' size='small' onClick={() => openEdit(u)}>编辑</Button>
           {u.id !== me.id && u.role !== 'admin' && (
-            <Popconfirm title='确认删除？' onConfirm={() => remove(u)}>
-              <Button type='link' size='small' danger>删除</Button>
-            </Popconfirm>
+            <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认删除？', content: `确定删除用户「${u.nickname || u.username}」吗？`, danger: true, onOk: () => remove(u) })}>删除</Button>
           )}
         </Space>
       )
@@ -108,15 +108,15 @@ export default function UsersPage() {
         <Button type='primary' icon={<PlusOutlined />} onClick={openCreate}>新增用户</Button>
       </Space>
       <Table rowKey='id' dataSource={list} columns={columns} size='small' pagination={false} />
-      <Modal title={editing ? `编辑用户 · ${editing.username}` : '新增用户'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose>
-        <Form form={form} layout='vertical'>
-          <Form.Item name='username' label='用户名' rules={[{ required: true, message: '请填写用户名' }]}>
-            <Input disabled={!!editing} />
-          </Form.Item>
-          <Form.Item name='password' label={editing ? '重置密码（留空不变）' : '初始密码'} rules={editing ? [] : [{ required: true, message: '请填写初始密码' }]}>
-            <Input.Password placeholder={editing ? '留空则不修改' : '设置登录密码'} />
-          </Form.Item>
+      <Modal title={editing ? `编辑用户 · ${editing.username}` : '新增用户'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={680}>
+        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <Form.Item name='username' label='用户名' rules={[{ required: true, message: '请填写用户名' }]}>
+              <Input disabled={!!editing} />
+            </Form.Item>
+            <Form.Item name='password' label={editing ? '重置密码（留空不变）' : '初始密码'} rules={editing ? [] : [{ required: true, message: '请填写初始密码' }]}>
+              <Input.Password placeholder={editing ? '留空则不修改' : '设置登录密码'} />
+            </Form.Item>
             <Form.Item name='nickname' label='姓名'><Input /></Form.Item>
             <Form.Item name='role' label='角色' rules={[{ required: true }]}>
               <Select options={ROLES.map((r) => ({ value: r, label: roleLabel[r] || r }))} />

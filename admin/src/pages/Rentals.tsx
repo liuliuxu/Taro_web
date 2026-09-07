@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, InputNumber, Select, Space, message, Popconfirm } from 'antd'
+import { Table, Button, Modal, Form, Input, InputNumber, Select, Space, message } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { get, post, qs } from '../api'
 import type { Machinery, Pagination, RentalContract } from '../types'
 import { StatusTag, rentalStatus, fmtDate, fmtMoney } from '../meta'
+import { confirmAction } from '../confirm'
+import { useCachedState } from '../useCachedState'
 
 export default function Rentals() {
   const [list, setList] = useState<RentalContract[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useCachedState('rt_page', 1)
   const [pageSize] = useState(10)
-  const [status, setStatus] = useState('')
-  const [keyword, setKeyword] = useState('')
+  const [status, setStatus] = useCachedState('rt_status', '')
+  const [keyword, setKeyword] = useCachedState('rt_keyword', '')
   const [machines, setMachines] = useState<Machinery[]>([])
   const [modal, setModal] = useState(false)
   const [form] = Form.useForm()
@@ -62,14 +64,12 @@ export default function Rentals() {
     { title: '合计（元）', dataIndex: 'totalAmount', render: (v) => <b>{fmtMoney(v)}</b> },
     { title: '状态', dataIndex: 'status', render: (s) => <StatusTag status={s} map={rentalStatus} /> },
     {
-      title: '操作', width: 140,
+      title: '操作', width: 160,
       render: (_, r) =>
         r.status === 'active' ? (
           <Space size={0}>
-            <Button type='link' size='small' onClick={() => handle(r, 'returned')}>归还</Button>
-            <Popconfirm title='确认取消？' onConfirm={() => handle(r, 'cancelled')}>
-              <Button type='link' size='small' danger>取消</Button>
-            </Popconfirm>
+            <Button type='link' size='small' onClick={() => confirmAction({ title: '确认归还', content: `确认设备「${r.machineryName}」已完成归还？`, onOk: () => handle(r, 'returned') })}>归还</Button>
+            <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认取消', content: `确认取消租赁合同「${r.contractNo}」？`, danger: true, onOk: () => handle(r, 'cancelled') })}>取消</Button>
           </Space>
         ) : <span style={{ color: '#999' }}>—</span>
     }
@@ -88,7 +88,7 @@ export default function Rentals() {
         pagination={{ current: page, pageSize, total, showTotal: (t) => `共 ${t} 份` }}
         onChange={(pg) => load(pg.current || 1)} />
       <Modal title='新建租赁合同' open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={640}>
-        <Form form={form} layout='vertical'>
+        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
           <Form.Item name='machineryId' label='租赁设备' rules={[{ required: true, message: '请选择设备' }]}>
             <Select showSearch optionFilterProp='label'
               options={machines.map((m) => ({ value: m.id, label: `${m.name}（${m.model || m.category}）· ${fmtMoney(m.price)} 元/天` }))} />

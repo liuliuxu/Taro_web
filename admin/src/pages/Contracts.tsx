@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, InputNumber, Select, Space, message, Popconfirm } from 'antd'
+import { Table, Button, Modal, Form, Input, InputNumber, Select, Space, message } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { get, post, put, del, qs } from '../api'
 import type { Contract } from '../types'
 import { StatusTag, contractStatus, fmtDate, fmtMoney } from '../meta'
+import { confirmAction } from '../confirm'
+import { useCachedState } from '../useCachedState'
 
 export default function Contracts() {
   const [list, setList] = useState<Contract[]>([])
-  const [status, setStatus] = useState('')
-  const [keyword, setKeyword] = useState('')
+  const [status, setStatus] = useCachedState('ct_status', '')
+  const [keyword, setKeyword] = useCachedState('ct_keyword', '')
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<Contract | null>(null)
   const [form] = Form.useForm()
@@ -62,13 +64,11 @@ export default function Contracts() {
     { title: '期限', render: (_, c) => `${fmtDate(c.startDate)} ~ ${fmtDate(c.endDate)}` },
     { title: '状态', dataIndex: 'status', render: (s) => <StatusTag status={s} map={contractStatus} /> },
     {
-      title: '操作', width: 130,
+      title: '操作', width: 140,
       render: (_, c) => (
         <Space>
           <Button type='link' size='small' onClick={() => openEdit(c)}>编辑</Button>
-          <Popconfirm title='确认删除？' onConfirm={() => remove(c)}>
-            <Button type='link' size='small' danger>删除</Button>
-          </Popconfirm>
+          <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认删除？', content: `确定删除合同「${c.contractNo} · ${c.customerName}」吗？`, danger: true, onOk: () => remove(c) })}>删除</Button>
         </Space>
       )
     }
@@ -84,8 +84,8 @@ export default function Contracts() {
         <Button type='primary' icon={<PlusOutlined />} onClick={openCreate}>新建合同</Button>
       </Space>
       <Table rowKey='id' dataSource={list} columns={columns} size='small' pagination={false} />
-      <Modal title={editing ? '编辑合同' : '新建合同'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose>
-        <Form form={form} layout='vertical'>
+      <Modal title={editing ? '编辑合同' : '新建合同'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={680}>
+        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
           <Form.Item name='customerName' label='客户名称' rules={[{ required: true, message: '请填写客户名称' }]}><Input /></Form.Item>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='type' label='类型'>

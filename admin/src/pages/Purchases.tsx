@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, InputNumber, Select, Space, message, Popconfirm } from 'antd'
+import { Table, Button, Modal, Form, Input, InputNumber, Select, Space, message } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { get, post, del, qs } from '../api'
 import type { PurchaseOrder, Supplier } from '../types'
 import { StatusTag, purchaseStatus, fmtMoney } from '../meta'
+import { confirmAction } from '../confirm'
+import { useCachedState } from '../useCachedState'
 
 export default function Purchases() {
   const [list, setList] = useState<PurchaseOrder[]>([])
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
-  const [status, setStatus] = useState('')
-  const [keyword, setKeyword] = useState('')
+  const [status, setStatus] = useCachedState('pc_status', '')
+  const [keyword, setKeyword] = useCachedState('pc_keyword', '')
   const [modal, setModal] = useState(false)
   const [form] = Form.useForm()
 
@@ -68,23 +70,19 @@ export default function Purchases() {
     { title: '申请人', dataIndex: 'applicantName' },
     { title: '状态', dataIndex: 'status', render: (s) => <StatusTag status={s} map={purchaseStatus} /> },
     {
-      title: '操作', width: 230,
+      title: '操作', width: 320,
       render: (_, p) => (
         <Space size={0}>
           {p.status === 'pending' && (
             <>
-              <Button type='link' size='small' onClick={() => act(p.id, 'approve')}>审批</Button>
-              <Button type='link' size='small' danger onClick={() => act(p.id, 'reject')}>驳回</Button>
-              <Popconfirm title='取消？' onConfirm={() => act(p.id, 'cancel')}>
-                <Button type='link' size='small' danger>取消</Button>
-              </Popconfirm>
+              <Button type='link' size='small' onClick={() => confirmAction({ title: '确认审批', content: `确定通过采购单「${p.itemName}」吗？`, onOk: () => act(p.id, 'approve') })}>审批</Button>
+              <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认驳回', content: `确定驳回采购单「${p.itemName}」吗？`, danger: true, onOk: () => act(p.id, 'reject') })}>驳回</Button>
+              <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认取消', content: `确定取消采购单「${p.itemName}」吗？`, danger: true, onOk: () => act(p.id, 'cancel') })}>取消</Button>
             </>
           )}
-          {p.status === 'approved' && <Button type='link' size='small' onClick={() => act(p.id, 'paid')}>记付款</Button>}
-          {(p.status === 'approved' || p.status === 'paid') && <Button type='link' size='small' onClick={() => receive(p.id)}>入库</Button>}
-          <Popconfirm title='确认删除？' onConfirm={() => remove(p)}>
-            <Button type='link' size='small' danger>删除</Button>
-          </Popconfirm>
+          {p.status === 'approved' && <Button type='link' size='small' onClick={() => confirmAction({ title: '确认付款', content: `确定登记「${p.itemName}」为已付款？`, onOk: () => act(p.id, 'paid') })}>记付款</Button>}
+          {(p.status === 'approved' || p.status === 'paid') && <Button type='link' size='small' onClick={() => confirmAction({ title: '确认入库', content: `确定「${p.itemName}」已到货入库？`, onOk: () => receive(p.id) })}>入库</Button>}
+          <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认删除？', content: `确定删除采购单「${p.itemName}」吗？`, danger: true, onOk: () => remove(p) })}>删除</Button>
         </Space>
       )
     }
@@ -100,8 +98,8 @@ export default function Purchases() {
         <Button type='primary' icon={<PlusOutlined />} onClick={openCreate}>新建采购</Button>
       </Space>
       <Table rowKey='id' dataSource={list} columns={columns} size='small' pagination={false} />
-      <Modal title='新建采购申请' open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose>
-        <Form form={form} layout='vertical'>
+      <Modal title='新建采购申请' open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={680}>
+        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
           <Form.Item name='itemName' label='物料名称' rules={[{ required: true, message: '请填写物料名称' }]}><Input /></Form.Item>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='supplierId' label='供应商'><Select allowClear options={suppliers.map((s) => ({ value: s.id, label: s.name }))} /></Form.Item>

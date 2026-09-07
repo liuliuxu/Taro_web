@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, InputNumber, Select, Space, message, Popconfirm } from 'antd'
+import { Table, Button, Modal, Form, Input, InputNumber, Select, Space, message } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { get, post, put, qs } from '../api'
 import type { Pagination, Project } from '../types'
 import { StatusTag, projectStatus, fmtDate, fmtMoney } from '../meta'
+import { confirmAction } from '../confirm'
+import { useCachedState } from '../useCachedState'
 
 export default function Projects() {
   const [list, setList] = useState<Project[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useCachedState('pj_page', 1)
   const [pageSize] = useState(10)
-  const [status, setStatus] = useState('')
-  const [keyword, setKeyword] = useState('')
+  const [status, setStatus] = useCachedState('pj_status', '')
+  const [keyword, setKeyword] = useCachedState('pj_keyword', '')
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
   const [form] = Form.useForm()
@@ -66,16 +68,14 @@ export default function Projects() {
     { title: '预算（元）', dataIndex: 'budget', render: fmtMoney },
     { title: '状态', dataIndex: 'status', render: (s) => <StatusTag status={s} map={projectStatus} /> },
     {
-      title: '操作', width: 220,
+      title: '操作', width: 250,
       render: (_, p) => (
         <Space size={0}>
           <Button type='link' size='small' onClick={() => openEdit(p)}>编辑</Button>
-          {p.status === 'created' && <Button type='link' size='small' onClick={() => changeStatus(p, 'active')}>启动</Button>}
-          {p.status === 'active' && <Button type='link' size='small' onClick={() => changeStatus(p, 'finished')}>完工</Button>}
+          {p.status === 'created' && <Button type='link' size='small' onClick={() => confirmAction({ title: '确认启动', content: `确定启动项目「${p.name}」吗？`, onOk: () => changeStatus(p, 'active') })}>启动</Button>}
+          {p.status === 'active' && <Button type='link' size='small' onClick={() => confirmAction({ title: '确认完工', content: `确定将项目「${p.name}」标记为完工吗？`, onOk: () => changeStatus(p, 'finished') })}>完工</Button>}
           {(p.status === 'created' || p.status === 'active') && (
-            <Popconfirm title='确认取消该项目？' onConfirm={() => changeStatus(p, 'cancelled')}>
-              <Button type='link' size='small' danger>取消</Button>
-            </Popconfirm>
+            <Button type='link' size='small' danger onClick={() => confirmAction({ title: '确认取消', content: `确定取消项目「${p.name}」吗？`, danger: true, onOk: () => changeStatus(p, 'cancelled') })}>取消</Button>
           )}
         </Space>
       )
@@ -95,7 +95,7 @@ export default function Projects() {
         pagination={{ current: page, pageSize, total, showTotal: (t) => `共 ${t} 个` }}
         onChange={(pg) => load(pg.current || 1)} />
       <Modal title={editing ? '编辑项目' : '新增项目'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={640}>
-        <Form form={form} layout='vertical'>
+        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
           <Form.Item name='name' label='项目名称' rules={[{ required: true, message: '请填写项目名称' }]}>
             <Input />
           </Form.Item>

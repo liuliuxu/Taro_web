@@ -6,6 +6,14 @@ import type { ChartsData } from '../types'
 import { useThemeCtx } from '../theme'
 
 const PALETTE = ['#FF6B1A', '#0EA5E9', '#22C55E', '#8B5CF6', '#F59E0B', '#F43F5E', '#14B8A6', '#6366F1', '#F97316', '#84CC16']
+
+function withAlpha(hex: string, alpha: number) {
+  const c = hex.replace('#', '')
+  const r = parseInt(c.substr(0, 2), 16)
+  const g = parseInt(c.substr(2, 2), 16)
+  const b = parseInt(c.substr(4, 2), 16)
+  return `rgba(${r},${g},${b},${alpha})`
+}
 const STATUS_LABEL: Record<string, string> = {
   created: '待派单',
   assigned: '待处理',
@@ -48,8 +56,8 @@ function Chart({ option, height = 260 }: { option: echarts.EChartsOption; height
 export default function Charts() {
   const [data, setData] = useState<ChartsData | null>(null)
   const [err, setErr] = useState('')
-  const { settings } = useThemeCtx()
-  const ORANGE = settings.color
+  const { chartColor } = useThemeCtx()
+  const ORANGE = chartColor
 
   useEffect(() => {
     get<ChartsData>('/admin/stats/charts').then(setData).catch((e) => setErr(e?.message || '加载失败'))
@@ -62,7 +70,7 @@ export default function Charts() {
   const pie = (rows: [string, number][], name: string) => ({
     tooltip: { trigger: 'item' as const },
     legend: { bottom: 0, type: 'scroll' },
-    color: PALETTE,
+    color: chartColor === '#FF6B1A' ? PALETTE : [chartColor, ...PALETTE.filter((c) => c !== '#FF6B1A')],
     series: [{
       type: 'pie' as const,
       radius: ['42%', '68%'],
@@ -101,7 +109,7 @@ export default function Charts() {
       smooth: true,
       data: rows.map((r) => r.count),
       itemStyle: { color: ORANGE },
-      areaStyle: { color: 'rgba(255,107,26,0.15)' },
+      areaStyle: { color: withAlpha(ORANGE, 0.15) },
       symbolSize: 6
     }]
   })
@@ -114,7 +122,7 @@ export default function Charts() {
     series: [{
       name: '采购金额（元）', type: 'bar' as const,
       data: rows.map((r) => r.amount),
-      itemStyle: { color: '#0EA5E9', borderRadius: [6, 6, 0, 0] },
+      itemStyle: { color: ORANGE, borderRadius: [6, 6, 0, 0] },
       barMaxWidth: 28
     }]
   })

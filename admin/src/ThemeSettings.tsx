@@ -31,15 +31,43 @@ export default function ThemeSettings({ open, onClose }: Props) {
       />
 
       <Divider style={{ margin: '18px 0' }} />
-      <Typography.Title level={5} style={{ fontSize: 14, marginBottom: 10 }}>主题颜色</Typography.Title>
+      <Typography.Title level={5} style={{ fontSize: 14, marginBottom: 10 }}>主色彩</Typography.Title>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <ColorPicker
           value={s.color}
           presets={[{ label: '推荐', colors: PRESETS }]}
           onChange={(c) => update({ color: c.toHexString() })}
         />
-        <span style={{ color: '#888', fontSize: 13 }}>主色：按钮 / 链接 / 菜单选中 / 图表</span>
+        <span style={{ color: '#888', fontSize: 13 }}>主色：各部件默认颜色</span>
       </div>
+
+      <Divider style={{ margin: '14px 0' }} />
+      <Typography.Title level={5} style={{ fontSize: 14, marginBottom: 10 }}>部件颜色（可单独设置）</Typography.Title>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {[
+          { label: '按钮颜色', key: 'btnColor' as const },
+          { label: '链接颜色', key: 'linkColor' as const },
+          { label: '菜单选中', key: 'menuColor' as const },
+          { label: '图表颜色', key: 'chartColor' as const }
+        ].map((row) => (
+          <div key={row.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 13 }}>{row.label}</span>
+            <Space size={4}>
+              <ColorPicker
+                value={s[row.key] || s.color}
+                presets={[{ label: '推荐', colors: PRESETS }]}
+                onChange={(c) => update({ [row.key]: c.toHexString() })}
+              />
+              {s[row.key] && (
+                <Button size='small' type='text' title='恢复主色' onClick={() => update({ [row.key]: undefined })}>
+                  默认
+                </Button>
+              )}
+            </Space>
+          </div>
+        ))}
+      </div>
+      <div style={{ color: '#888', fontSize: 12, marginTop: 8 }}>不设置则跟随主色彩。</div>
 
       <Divider style={{ margin: '18px 0' }} />
       <Typography.Title level={5} style={{ fontSize: 14, marginBottom: 10 }}>字体大小</Typography.Title>

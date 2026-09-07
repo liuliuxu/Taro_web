@@ -15,6 +15,10 @@ export type MenuStyle = 'fill' | 'bar' | 'rounded'
 export interface ThemeSettings {
   mode: 'light' | 'dark'
   color: string
+  btnColor?: string
+  linkColor?: string
+  menuColor?: string
+  chartColor?: string
   fontSize: FontKey
   fontSizeCustom?: number
   bgColor: string
@@ -60,6 +64,10 @@ export interface ThemeCtxShape {
   reset: () => void
   dark: boolean
   fontPx: number
+  btnColor: string
+  linkColor: string
+  menuColor: string
+  chartColor: string
 }
 
 export function resolveFontPx(s: ThemeSettings): number {
@@ -74,7 +82,11 @@ export const ThemeCtx = createContext<ThemeCtxShape>({
   update: () => {},
   reset: () => {},
   dark: false,
-  fontPx: FONT_OPTIONS.normal
+  fontPx: FONT_OPTIONS.normal,
+  btnColor: DEFAULT_SETTINGS.color,
+  linkColor: DEFAULT_SETTINGS.color,
+  menuColor: DEFAULT_SETTINGS.color,
+  chartColor: DEFAULT_SETTINGS.color
 })
 export const useThemeCtx = () => useContext(ThemeCtx)
 
@@ -82,6 +94,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<ThemeSettings>(loadSettings)
   const dark = settings.mode === 'dark'
   const fontPx = resolveFontPx(settings)
+  const btnColor = settings.btnColor || settings.color
+  const linkColor = settings.linkColor || settings.color
+  const menuColor = settings.menuColor || settings.color
+  const chartColor = settings.chartColor || settings.color
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
@@ -89,11 +105,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     document.documentElement.setAttribute('data-theme', settings.mode)
     const root = document.documentElement.style
     root.setProperty('--hm-color', settings.color)
+    root.setProperty('--hm-btn', btnColor)
+    root.setProperty('--hm-link', linkColor)
+    root.setProperty('--hm-menu-color', menuColor)
+    root.setProperty('--hm-chart', chartColor)
     root.setProperty('--hm-font', `${fontPx}px`)
     root.setProperty('--hm-bg', dark ? '#0F1419' : settings.bgColor)
     root.setProperty('--hm-card', dark ? '#1F1F1F' : settings.cardColor)
     root.setProperty('--hm-sider', dark ? '#141414' : settings.siderColor)
-  }, [settings, fontPx, dark])
+  }, [settings, fontPx, dark, btnColor, linkColor, menuColor, chartColor])
 
   function update(patch: Partial<ThemeSettings>) {
     setSettings((s) => ({ ...s, ...patch }))
@@ -106,15 +126,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     () => ({
       algorithm: dark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
       token: {
-        colorPrimary: settings.color,
+        colorPrimary: btnColor,
+        colorLink: linkColor,
         fontSize: fontPx
       }
     }),
-    [dark, settings.color, fontPx]
+    [dark, btnColor, linkColor, fontPx]
   )
 
   return (
-    <ThemeCtx.Provider value={{ settings, update, reset, dark, fontPx }}>
+    <ThemeCtx.Provider value={{ settings, update, reset, dark, fontPx, btnColor, linkColor, menuColor, chartColor }}>
       <ConfigProvider theme={antdConfig}>
         {children}
       </ConfigProvider>

@@ -51,8 +51,8 @@ function MiniLine({ months, color }: { months: { month: string; count: number }[
 }
 
 export default function Dashboard() {
-  const { settings } = useThemeCtx()
-  const color = settings.color
+  const { chartColor } = useThemeCtx()
+  const color = chartColor
   const [stats, setStats] = useState<StatsData | null>(null)
   const [fin, setFin] = useState<FinanceData | null>(null)
   const [charts, setCharts] = useState<ChartsData | null>(null)

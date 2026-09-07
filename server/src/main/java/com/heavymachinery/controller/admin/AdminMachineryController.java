@@ -1,54 +1,52 @@
 package com.heavymachinery.controller.admin;
 
 import com.heavymachinery.common.ApiResponse;
-import com.heavymachinery.entity.Machinery;
-import com.heavymachinery.repository.MachineryRepository;
+import com.heavymachinery.common.PageResult;
+import com.heavymachinery.dto.MachineryRequest;
+import com.heavymachinery.dto.MachineryVO;
+import com.heavymachinery.service.MachineryService;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
- * 设备管理接口（供 PC 后台管理系统使用）
+ * 设备管理接口（PC 后台）
  */
 @RestController
 @RequestMapping("/api/admin/machinery")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminMachineryController {
 
-    private final MachineryRepository machineryRepository;
+    private final MachineryService machineryService;
 
-    public AdminMachineryController(MachineryRepository machineryRepository) {
-        this.machineryRepository = machineryRepository;
+    public AdminMachineryController(MachineryService machineryService) {
+        this.machineryService = machineryService;
     }
 
     @GetMapping("/list")
-    public ApiResponse<List<Machinery>> list() {
-        return ApiResponse.success(machineryRepository.findAll());
-    }
-
-    @GetMapping("/{id}")
-    public ApiResponse<Machinery> get(@PathVariable Long id) {
-        return ApiResponse.success(machineryRepository.findById(id).orElse(null));
+    public ApiResponse<PageResult<MachineryVO>> list(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status) {
+        return ApiResponse.success(machineryService.list(page, pageSize, category, keyword, status, null));
     }
 
     @PostMapping
-    public ApiResponse<Machinery> create(@RequestBody Machinery machinery) {
-        if (machinery.getId() != null) {
-            machinery.setId(null);
-        }
-        return ApiResponse.success("创建成功", machineryRepository.save(machinery));
+    public ApiResponse<MachineryVO> create(@Valid @RequestBody MachineryRequest request) {
+        return ApiResponse.success("设备新增成功", machineryService.create(request));
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<Machinery> update(@PathVariable Long id, @RequestBody Machinery machinery) {
-        machinery.setId(id);
-        return ApiResponse.success("更新成功", machineryRepository.save(machinery));
+    public ApiResponse<MachineryVO> update(@PathVariable Long id,
+                                           @Valid @RequestBody MachineryRequest request) {
+        return ApiResponse.success("设备更新成功", machineryService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
-        machineryRepository.deleteById(id);
-        return ApiResponse.success();
+        machineryService.delete(id);
+        return ApiResponse.success("设备已删除", null);
     }
 }

@@ -7,7 +7,15 @@ export default defineAppConfig({
     'pages/device-detail/index',
     'pages/workorder-detail/index',
     'pages/workorder-create/index',
-    'pages/login/index'
+    'pages/login/index',
+    'pages/project-list/index',
+    'pages/project-detail/index',
+    'pages/project-create/index',
+    'pages/dispatch-create/index',
+    'pages/task-list/index',
+    'pages/task-detail/index',
+    'pages/rental-list/index',
+    'pages/rental-create/index'
   ],
   window: {
     backgroundTextStyle: 'light',

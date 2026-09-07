@@ -102,3 +102,75 @@ export interface WorkOrderStats {
   total: number
   myTodos: number
 }
+
+export type ProjectStatus = 'created' | 'active' | 'finished' | 'cancelled'
+
+export interface Project {
+  id: number
+  projectNo: string
+  name: string
+  customerName: string
+  customerPhone: string
+  address: string
+  plannedStart?: string
+  plannedEnd?: string
+  budget?: number
+  managerName?: string
+  description?: string
+  status: ProjectStatus
+  createdAt: string
+  tasks?: DispatchTask[]
+  taskCount?: number
+}
+
+export type DispatchStatus =
+  | 'created'
+  | 'assigned'
+  | 'ongoing'
+  | 'done'
+  | 'cancelled'
+
+export interface DispatchTask {
+  id: number
+  dispatchNo: string
+  projectId: number
+  projectName: string
+  machineryId: number
+  machineryName: string
+  machineryModel?: string
+  title: string
+  description?: string
+  assigneeUserId?: number
+  assigneeName?: string
+  progress?: number
+  handleNote?: string
+  startAt?: string
+  endAt?: string
+  status: DispatchStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export type RentalStatus = 'active' | 'returned' | 'cancelled'
+
+export interface RentalContract {
+  id: number
+  contractNo: string
+  machineryId: number
+  machineryName: string
+  machineryModel?: string
+  clientCompany: string
+  clientContact: string
+  clientPhone: string
+  deposit?: number
+  dailyRate: number
+  startDate: string
+  endDate: string
+  rentDays?: number
+  totalAmount?: number
+  status: RentalStatus
+  note?: string
+  createdByName?: string
+  returnAt?: string
+  createdAt: string
+}

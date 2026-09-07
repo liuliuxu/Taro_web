@@ -140,8 +140,9 @@
 
 .quick-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   margin-top: 24px;
+  row-gap: 28px;
 }
 
 .quick-item {
@@ -171,6 +172,8 @@
 .qi-maintain { background: linear-gradient(135deg, #34B8FF, #0E86D4); box-shadow: 0 6px 14px rgba(14, 134, 212, 0.3); }
 .qi-todo { background: linear-gradient(135deg, #8B5CF6, #6D28D9); box-shadow: 0 6px 14px rgba(109, 40, 217, 0.3); }
 .qi-device { background: linear-gradient(135deg, #22C55E, #15803D); box-shadow: 0 6px 14px rgba(21, 128, 61, 0.3); }
+.qi-project { background: linear-gradient(135deg, #0EA5E9, #0369A1); box-shadow: 0 6px 14px rgba(3, 105, 161, 0.3); }
+.qi-rental { background: linear-gradient(135deg, #F472B6, #BE185D); box-shadow: 0 6px 14px rgba(190, 24, 93, 0.3); }
 
 .quick-text {
   font-size: 24px;

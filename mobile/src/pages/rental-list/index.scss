@@ -1,0 +1,133 @@
+.rl-page {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.rl-scroll {
+  height: calc(100vh - 110px - env(safe-area-inset-bottom));
+  padding: 8px 24px 40px;
+  box-sizing: border-box;
+}
+
+.rl-empty {
+  padding: 100px 0;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 26px;
+}
+
+.rl-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 26px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-1);
+}
+
+.rl-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rl-no {
+  font-size: 22px;
+  color: var(--text-3);
+  font-family: monospace;
+}
+
+.rl-status {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.rl-mach {
+  display: block;
+  margin-top: 14px;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.rl-client {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+  color: var(--text-2);
+}
+
+.rl-info {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rl-meta {
+  font-size: 22px;
+  color: var(--text-3);
+}
+
+.rl-btns {
+  display: flex;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.rl-btn {
+  flex: 1;
+  text-align: center;
+  padding: 18px 0;
+  border-radius: 14px;
+  font-size: 26px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.rl-btn-primary { background: linear-gradient(135deg, #FF8A3D, #F2540E); }
+.rl-btn-warn { background: linear-gradient(135deg, #FBBF24, #D97706); }
+
+.wo-tab-scroll {
+  background: #fff;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+
+.wo-tab-row {
+  display: inline-flex;
+  gap: 8px;
+  padding: 20px 24px;
+}
+
+.wo-tab-chip {
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-size: 26px;
+  color: var(--text-2);
+  background: var(--bg-2);
+}
+
+.wo-tab-on {
+  background: #FF6B1A;
+  color: #fff;
+  font-weight: 600;
+}
+
+.wo-fab {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(30px + env(safe-area-inset-bottom));
+  background: linear-gradient(135deg, #FF8A3D, #F2540E);
+  color: #fff;
+  padding: 22px 60px;
+  border-radius: 48px;
+  font-size: 28px;
+  font-weight: 600;
+  box-shadow: 0 10px 26px rgba(242, 84, 14, 0.4);
+  z-index: 20;
+}

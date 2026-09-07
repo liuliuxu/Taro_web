@@ -1,0 +1,76 @@
+.tl-page {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.tl-scroll {
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.tl-empty {
+  padding: 100px 0;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 26px;
+}
+
+.tl-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 26px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-1);
+}
+
+.tl-hover {
+  background: #FAFBFC;
+}
+
+.tl-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tl-no {
+  font-size: 22px;
+  color: var(--text-3);
+  font-family: monospace;
+}
+
+.tl-status {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.tl-title {
+  display: block;
+  margin-top: 14px;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.tl-meta {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+  color: var(--text-3);
+}
+
+.tl-progress {
+  margin-top: 16px;
+  height: 10px;
+  background: var(--bg-2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tl-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #FF8A3D, #F2540E);
+  border-radius: 8px;
+}

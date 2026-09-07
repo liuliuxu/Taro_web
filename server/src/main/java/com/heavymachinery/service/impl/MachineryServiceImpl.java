@@ -2,6 +2,7 @@ package com.heavymachinery.service.impl;
 
 import com.heavymachinery.common.BusinessException;
 import com.heavymachinery.common.PageResult;
+import com.heavymachinery.dto.MachineryRequest;
 import com.heavymachinery.dto.MachineryVO;
 import com.heavymachinery.entity.Machinery;
 import com.heavymachinery.repository.MachineryRepository;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
@@ -84,5 +86,48 @@ public class MachineryServiceImpl implements MachineryService {
             list = machineryRepository.findAll(PageRequest.of(0, 5)).getContent();
         }
         return list.stream().map(MachineryVO::from).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public MachineryVO create(MachineryRequest request) {
+        Machinery m = new Machinery();
+        apply(m, request);
+        return MachineryVO.from(machineryRepository.save(m));
+    }
+
+    @Override
+    @Transactional
+    public MachineryVO update(Long id, MachineryRequest request) {
+        Machinery m = machineryRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(404, "设备不存在"));
+        apply(m, request);
+        return MachineryVO.from(machineryRepository.save(m));
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        if (!machineryRepository.existsById(id)) {
+            throw new BusinessException(404, "设备不存在");
+        }
+        machineryRepository.deleteById(id);
+    }
+
+    private void apply(Machinery m, MachineryRequest r) {
+        m.setName(r.getName());
+        m.setModel(r.getModel());
+        m.setCategory(r.getCategory());
+        m.setBrand(r.getBrand());
+        m.setDescription(r.getDescription());
+        if (r.getPrice() != null) m.setPrice(r.getPrice());
+        if (r.getStock() != null) m.setStock(r.getStock());
+        if (r.getStatus() != null) m.setStatus(r.getStatus());
+        m.setImage(r.getImage());
+        m.setSpecWeight(r.getSpecWeight());
+        m.setSpecPower(r.getSpecPower());
+        m.setSpecDimensions(r.getSpecDimensions());
+        m.setSpecCapacity(r.getSpecCapacity());
+        if (r.getRecommended() != null) m.setRecommended(r.getRecommended());
     }
 }

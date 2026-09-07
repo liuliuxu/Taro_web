@@ -56,7 +56,10 @@ export default function Profile() {
   const menuItems = [
     { label: '设备台账', value: '查看全部设备', action: () => Taro.switchTab({ url: '/pages/device-list/index' }) },
     { label: '工单管理', value: '报修 / 派单 / 处理', action: () => Taro.switchTab({ url: '/pages/workorder-list/index' }) },
-    { label: '新建工单', value: '发起报修或保养', action: () => Taro.navigateTo({ url: '/pages/workorder-create/index' }) }
+    { label: '新建工单', value: '发起报修或保养', action: () => Taro.navigateTo({ url: '/pages/workorder-create/index' }) },
+    { label: '工程项目', value: '立项 / 进度 / 调度', action: () => Taro.navigateTo({ url: '/pages/project-list/index' }) },
+    { label: '我的任务', value: '派发给我的调度任务', action: () => Taro.navigateTo({ url: '/pages/task-list/index' }) },
+    { label: '租赁管理', value: '租赁合同 / 登记归还', action: () => Taro.navigateTo({ url: '/pages/rental-list/index' }) }
   ]
 
   return (

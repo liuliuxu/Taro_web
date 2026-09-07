@@ -1,9 +1,15 @@
 package com.heavymachinery.config;
 
+import com.heavymachinery.entity.DispatchTask;
 import com.heavymachinery.entity.Machinery;
+import com.heavymachinery.entity.Project;
+import com.heavymachinery.entity.RentalContract;
 import com.heavymachinery.entity.User;
 import com.heavymachinery.entity.WorkOrder;
+import com.heavymachinery.repository.DispatchTaskRepository;
 import com.heavymachinery.repository.MachineryRepository;
+import com.heavymachinery.repository.ProjectRepository;
+import com.heavymachinery.repository.RentalContractRepository;
 import com.heavymachinery.repository.UserRepository;
 import com.heavymachinery.repository.WorkOrderRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -27,15 +34,24 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final MachineryRepository machineryRepository;
     private final WorkOrderRepository workOrderRepository;
+    private final ProjectRepository projectRepository;
+    private final DispatchTaskRepository dispatchTaskRepository;
+    private final RentalContractRepository rentalContractRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UserRepository userRepository,
                            MachineryRepository machineryRepository,
                            WorkOrderRepository workOrderRepository,
+                           ProjectRepository projectRepository,
+                           DispatchTaskRepository dispatchTaskRepository,
+                           RentalContractRepository rentalContractRepository,
                            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.machineryRepository = machineryRepository;
         this.workOrderRepository = workOrderRepository;
+        this.projectRepository = projectRepository;
+        this.dispatchTaskRepository = dispatchTaskRepository;
+        this.rentalContractRepository = rentalContractRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -48,6 +64,12 @@ public class DataInitializer implements CommandLineRunner {
         }
         if (workOrderRepository.count() == 0) {
             initWorkOrders();
+        }
+        if (projectRepository.count() == 0) {
+            initProjects();
+        }
+        if (rentalContractRepository.count() == 0) {
+            initRentals();
         }
     }
 
@@ -183,5 +205,97 @@ public class DataInitializer implements CommandLineRunner {
         m.setStatus("available");
         m.setRecommended(recommended);
         return m;
+    }
+
+    private void initProjects() {
+        User manager = userRepository.findByUsername("manager").orElse(null);
+        User operator = userRepository.findByUsername("operator").orElse(null);
+        String managerName = manager != null ? manager.getNickname() : "设备负责人";
+        String operatorName = operator != null ? operator.getNickname() : "一线维修工";
+
+        Project p1 = new Project();
+        p1.setProjectNo("PRJ" + System.currentTimeMillis() + "001");
+        p1.setName("滨海新区市政道路改造工程");
+        p1.setCustomerName("滨海市政建设有限公司");
+        p1.setCustomerPhone("021-68888888");
+        p1.setAddress("滨海新区临港大道");
+        p1.setPlannedStart(LocalDate.now().minusDays(15));
+        p1.setPlannedEnd(LocalDate.now().plusMonths(3));
+        p1.setBudget(new BigDecimal("680.00"));
+        p1.setManagerName(managerName);
+        p1.setDescription("路基土方开挖、回填碾压及道路面层施工，涉及挖掘机、装载机、压路机等设备。");
+        p1.setStatus("active");
+        projectRepository.save(p1);
+
+        Project p2 = new Project();
+        p2.setProjectNo("PRJ" + System.currentTimeMillis() + "002");
+        p2.setName("青山矿场采剥工程");
+        p2.setCustomerName("青山矿业集团");
+        p2.setCustomerPhone("0371-67555555");
+        p2.setAddress("青山市矿区一号采场");
+        p2.setPlannedStart(LocalDate.now().plusDays(10));
+        p2.setPlannedEnd(LocalDate.now().plusMonths(6));
+        p2.setBudget(new BigDecimal("1250.00"));
+        p2.setManagerName(managerName);
+        p2.setDescription("矿山剥离与矿石运输，投入挖掘机、破碎锤、自卸车等大型设备。");
+        p2.setStatus("created");
+        projectRepository.save(p2);
+
+        if (operator != null) {
+            Machinery m1 = machineryRepository.findAll().stream()
+                    .filter(m -> "液压挖掘机".equals(m.getName())).findFirst().orElse(null);
+            if (m1 != null) {
+                DispatchTask d1 = new DispatchTask();
+                d1.setDispatchNo("DP" + System.currentTimeMillis() + "001");
+                d1.setProjectId(p1.getId());
+                d1.setProjectName(p1.getName());
+                d1.setMachineryId(m1.getId());
+                d1.setMachineryName(m1.getName());
+                d1.setMachineryModel(m1.getModel());
+                d1.setTitle("临港大道段路基开挖");
+                d1.setDescription("负责K2+300~K2+800段路基土方开挖，日工作量约800方。");
+                d1.setAssigneeUserId(operator.getId());
+                d1.setAssigneeName(operatorName);
+                d1.setStartAt(LocalDateTime.now().minusDays(2));
+                d1.setEndAt(LocalDateTime.now().plusDays(3));
+                d1.setStatus("ongoing");
+                d1.setProgress(40);
+                dispatchTaskRepository.save(d1);
+            }
+        }
+        log.info("已初始化示例工程与调度任务");
+    }
+
+    private void initRentals() {
+        User admin = userRepository.findByUsername("admin").orElse(null);
+
+        Machinery m4 = machineryRepository.findAll().stream()
+                .filter(m -> "混凝土泵车".equals(m.getName())).findFirst().orElse(null);
+        if (m4 != null) {
+            RentalContract c1 = new RentalContract();
+            c1.setContractNo("HT" + System.currentTimeMillis() + "001");
+            c1.setMachineryId(m4.getId());
+            c1.setMachineryName(m4.getName());
+            c1.setMachineryModel(m4.getModel());
+            c1.setClientCompany("宏宇建筑工程公司");
+            c1.setClientContact("王先生");
+            c1.setClientPhone("13922223333");
+            c1.setDeposit(new BigDecimal("200000.00"));
+            c1.setDailyRate(new BigDecimal("8000.00"));
+            c1.setStartDate(LocalDate.now().minusDays(20));
+            c1.setEndDate(LocalDate.now().plusDays(40));
+            c1.setRentDays(60);
+            c1.setTotalAmount(new BigDecimal("480000.00"));
+            c1.setStatus("active");
+            c1.setNote("含司机与泵送管路，按日租金结算。");
+            if (admin != null) {
+                c1.setCreatedByUserId(admin.getId());
+                c1.setCreatedByName(admin.getNickname());
+            }
+            rentalContractRepository.save(c1);
+            m4.setStatus("rented");
+            machineryRepository.save(m4);
+        }
+        log.info("已初始化示例租赁合同");
     }
 }

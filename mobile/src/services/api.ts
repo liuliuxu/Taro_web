@@ -1,7 +1,10 @@
 import { api } from './request'
 import type {
+  DispatchTask,
   Machinery,
   Pagination,
+  Project,
+  RentalContract,
   User,
   WorkOrder,
   WorkOrderStats
@@ -85,5 +88,62 @@ export const workOrderApi = {
   },
   getStats() {
     return api.get<WorkOrderStats>('/workorders/stats')
+  }
+}
+
+export const projectApi = {
+  getList(params?: { page?: number; pageSize?: number; status?: string; keyword?: string }) {
+    return api.get<Pagination<Project>>('/projects/list', params, true)
+  },
+  getDetail(id: number) {
+    return api.get<Project>(`/projects/${id}`, undefined, true)
+  },
+  create(data: Record<string, unknown>) {
+    return api.post<Project>('/projects', data, true)
+  },
+  changeStatus(id: number, status: string) {
+    return api.post<Project>(`/projects/${id}/status`, { status }, true)
+  }
+}
+
+export const dispatchApi = {
+  getMyTasks() {
+    return api.get<DispatchTask[]>('/dispatch/my-tasks', undefined, true)
+  },
+  getList() {
+    return api.get<DispatchTask[]>('/dispatch/list', undefined, true)
+  },
+  getProjectTasks(projectId: number) {
+    return api.get<DispatchTask[]>('/dispatch/project', { projectId }, true)
+  },
+  getDetail(id: number) {
+    return api.get<DispatchTask>(`/dispatch/${id}`, undefined, true)
+  },
+  create(data: Record<string, unknown>) {
+    return api.post<DispatchTask>('/dispatch', data, true)
+  },
+  assign(id: number, assigneeUserId: number) {
+    return api.post<DispatchTask>(`/dispatch/${id}/assign`, { assigneeUserId }, true)
+  },
+  handle(id: number, data: { status: string; progress?: number; handleNote?: string }) {
+    return api.post<DispatchTask>(`/dispatch/${id}/handle`, data, true)
+  }
+}
+
+export const rentalApi = {
+  getList(params?: { status?: string }) {
+    return api.get<RentalContract[]>('/rentals/list', params, true)
+  },
+  getActive() {
+    return api.get<RentalContract[]>('/rentals/active', undefined, true)
+  },
+  getDetail(id: number) {
+    return api.get<RentalContract>(`/rentals/${id}`, undefined, true)
+  },
+  create(data: Record<string, unknown>) {
+    return api.post<RentalContract>('/rentals', data, true)
+  },
+  handle(id: number, data: { status: string; note?: string }) {
+    return api.post<RentalContract>(`/rentals/${id}/handle`, data, true)
   }
 }

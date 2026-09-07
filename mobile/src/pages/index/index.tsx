@@ -125,6 +125,14 @@ export default function Index() {
             <View className='quick-icon qi-device'>备</View>
             <Text className='quick-text'>设备台账</Text>
           </View>
+          <View className='quick-item' hoverClass='quick-hover' onClick={() => requireLogin() && goTo('/pages/project-list/index')}>
+            <View className='quick-icon qi-project'>程</View>
+            <Text className='quick-text'>工程项目</Text>
+          </View>
+          <View className='quick-item' hoverClass='quick-hover' onClick={() => requireLogin() && goTo('/pages/rental-list/index')}>
+            <View className='quick-icon qi-rental'>租</View>
+            <Text className='quick-text'>租赁管理</Text>
+          </View>
         </View>
       </View>
 

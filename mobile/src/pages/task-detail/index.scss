@@ -1,0 +1,198 @@
+.td-page {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.td-scroll {
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.td-header {
+  background: linear-gradient(160deg, #16283B 0%, #1E3A55 60%, #244A6B 100%);
+  border-radius: 24px;
+  padding: 30px;
+  margin-bottom: 20px;
+}
+
+.td-status {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 24px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.td-no {
+  display: block;
+  margin-top: 18px;
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: monospace;
+}
+
+.td-title {
+  display: block;
+  margin-top: 8px;
+  font-size: 36px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.td-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 12px 28px;
+  box-shadow: var(--shadow-1);
+}
+
+.td-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.td-row:last-child {
+  border-bottom: none;
+}
+
+.td-label {
+  flex-shrink: 0;
+  font-size: 26px;
+  color: var(--text-3);
+}
+
+.td-value {
+  flex: 1;
+  text-align: right;
+  font-size: 26px;
+  color: var(--text-1);
+  word-break: break-all;
+}
+
+.td-progress-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px 28px;
+  margin-top: 20px;
+  box-shadow: var(--shadow-1);
+}
+
+.td-progress {
+  height: 12px;
+  background: var(--bg-2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.td-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #FF8A3D, #F2540E);
+  border-radius: 8px;
+}
+
+.td-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.td-btn {
+  flex: 1;
+  text-align: center;
+  padding: 22px 0;
+  border-radius: 16px;
+  font-size: 28px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.td-btn-primary { background: linear-gradient(135deg, #FF8A3D, #F2540E); }
+.td-btn-success { background: linear-gradient(135deg, #22C55E, #15803D); }
+.td-btn-danger { background: linear-gradient(135deg, #F87171, #DC2626); }
+.td-btn-warn { background: linear-gradient(135deg, #FBBF24, #D97706); }
+.td-btn-extra { background: linear-gradient(135deg, #34B8FF, #0E86D4); }
+
+.td-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+}
+
+.td-sheet {
+  width: 100%;
+  background: #fff;
+  border-radius: 28px 28px 0 0;
+  padding: 36px 30px calc(30px + env(safe-area-inset-bottom));
+}
+
+.td-sheet-title {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-1);
+  display: block;
+  margin-bottom: 20px;
+}
+
+.td-sheet-empty {
+  display: block;
+  text-align: center;
+  padding: 40px 0;
+  color: var(--text-3);
+  font-size: 26px;
+}
+
+.td-user {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.td-user:active {
+  background: var(--bg-2);
+}
+
+.td-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #34B8FF, #0E86D4);
+  color: #fff;
+  font-size: 32px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.td-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.td-user-name {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.td-user-role {
+  font-size: 22px;
+  color: var(--text-3);
+}
+
+.td-sheet-cancel {
+  margin-top: 24px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 28px;
+  padding: 10px 0;
+}

@@ -135,6 +135,34 @@
   z-index: 2;
 }
 
+.quick-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+
+.quick-toggle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-2, #F4F6F8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+}
+
+.quick-toggle-on {
+  background: var(--orange-soft, rgba(255, 107, 26, 0.12));
+  color: var(--orange, #FF6B1A);
+}
+
+.quick-toggle-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
 .panel-title {
   font-size: 28px;
   font-weight: 700;

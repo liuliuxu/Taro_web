@@ -13,6 +13,7 @@ export default function Index() {
   const [stats, setStats] = useState<WorkOrderStats | null>(null)
   const [todos, setTodos] = useState<WorkOrder[]>([])
   const [deviceCount, setDeviceCount] = useState(0)
+  const [quickOpen, setQuickOpen] = useState(() => Taro.getStorageSync('quick_open_panel') !== '0')
 
   useDidShow(() => {
     loadEverything()
@@ -107,8 +108,18 @@ export default function Index() {
 
       {/* 快捷入口 */}
       <View className='quick-panel'>
-        <Text className='panel-title'>快捷操作</Text>
-        <View className='quick-grid'>
+        <View className='quick-head' onClick={() => {
+          const next = !quickOpen
+          setQuickOpen(next)
+          Taro.setStorageSync('quick_open_panel', next ? '1' : '0')
+        }}>
+          <Text className='panel-title'>快捷操作</Text>
+          <View className={`quick-toggle ${quickOpen ? 'quick-toggle-on' : ''}`}>
+            <Text className='quick-toggle-icon'>{quickOpen ? '⌃' : '⌄'}</Text>
+          </View>
+        </View>
+        {quickOpen && (
+          <View className='quick-grid'>
           <View className='quick-item' hoverClass='quick-hover' onClick={() => requireLogin() && goTo('/pages/workorder-create/index?type=repair')}>
             <View className='quick-icon qi-report'>报</View>
             <Text className='quick-text'>我要报修</Text>
@@ -153,7 +164,8 @@ export default function Index() {
             <View className='quick-icon qi-purchase'>购</View>
             <Text className='quick-text'>采购申请</Text>
           </View>
-        </View>
+          </View>
+        )}
       </View>
 
       {/* 我的待办 */}

@@ -149,13 +149,14 @@
 
 .wo-fab {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(30px + env(safe-area-inset-bottom));
+  right: 24px;
+  left: auto;
+  transform: none;
+  bottom: calc(20px + 50px + env(safe-area-inset-bottom));
   background: linear-gradient(135deg, #FF8A3D, #F2540E);
   color: #fff;
   border-radius: 46px;
-  padding: 22px 44px;
+  padding: 20px 36px;
   font-size: 28px;
   font-weight: 700;
   box-shadow: 0 8px 20px rgba(242, 84, 14, 0.4);

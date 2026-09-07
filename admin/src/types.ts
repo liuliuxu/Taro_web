@@ -205,6 +205,18 @@ export interface OptionSet {
   status?: string
 }
 
+export interface SysMenu {
+  id: number
+  type: 'parent' | 'item'
+  name: string
+  path?: string
+  icon?: string
+  parentId?: number | null
+  sort?: number
+  enabled?: boolean
+  cached?: boolean
+}
+
 export interface FormDefinition {
   id: number
   name: string

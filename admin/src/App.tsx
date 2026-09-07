@@ -16,6 +16,7 @@ import Purchases from './pages/Purchases'
 import SpareParts from './pages/SpareParts'
 import Inspection from './pages/Inspection'
 import Announcements from './pages/Announcements'
+import Menus from './pages/Menus'
 import Contracts from './pages/Contracts'
 import ApprovalConfig from './pages/ApprovalConfig'
 import ApprovalInstances from './pages/ApprovalInstances'
@@ -54,6 +55,7 @@ export default function App() {
             <Route path='spare-parts' element={<SpareParts />} />
             <Route path='inspection' element={<Inspection />} />
             <Route path='announcements' element={<Announcements />} />
+            <Route path='menus' element={<Menus />} />
             <Route path='contracts' element={<Contracts />} />
             <Route path='approval/config' element={<ApprovalConfig />} />
             <Route path='approval/instances' element={<ApprovalInstances />} />

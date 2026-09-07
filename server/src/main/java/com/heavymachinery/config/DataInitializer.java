@@ -15,6 +15,7 @@ import com.heavymachinery.entity.PurchaseOrder;
 import com.heavymachinery.entity.RentalContract;
 import com.heavymachinery.entity.SparePart;
 import com.heavymachinery.entity.Supplier;
+import com.heavymachinery.entity.SysMenu;
 import com.heavymachinery.entity.User;
 import com.heavymachinery.entity.WorkOrder;
 import com.heavymachinery.repository.AnnouncementRepository;
@@ -32,6 +33,7 @@ import com.heavymachinery.repository.PurchaseOrderRepository;
 import com.heavymachinery.repository.RentalContractRepository;
 import com.heavymachinery.repository.SparePartRepository;
 import com.heavymachinery.repository.SupplierRepository;
+import com.heavymachinery.repository.SysMenuRepository;
 import com.heavymachinery.repository.UserRepository;
 import com.heavymachinery.repository.WorkOrderRepository;
 import com.heavymachinery.util.JsonUtil;
@@ -72,6 +74,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ApprovalTaskRepository approvalTaskRepository;
     private final PurchaseOrderRepository purchaseOrderRepository;
     private final ContractRepository contractRepository;
+    private final SysMenuRepository sysMenuRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UserRepository userRepository,
@@ -91,6 +94,7 @@ public class DataInitializer implements CommandLineRunner {
                            ApprovalTaskRepository approvalTaskRepository,
                            PurchaseOrderRepository purchaseOrderRepository,
                            ContractRepository contractRepository,
+                           SysMenuRepository sysMenuRepository,
                            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.machineryRepository = machineryRepository;
@@ -109,6 +113,7 @@ public class DataInitializer implements CommandLineRunner {
         this.approvalTaskRepository = approvalTaskRepository;
         this.purchaseOrderRepository = purchaseOrderRepository;
         this.contractRepository = contractRepository;
+        this.sysMenuRepository = sysMenuRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -140,6 +145,50 @@ public class DataInitializer implements CommandLineRunner {
             initSpareParts(rootOrgId);
         }
         enrichBusinessData(rootOrgId);
+        initMenus();
+    }
+
+    /** 初始化系统菜单（仅当没有任何菜单时） */
+    private void initMenus() {
+        if (sysMenuRepository.count() > 0) {
+            return;
+        }
+        String[][] parents = {
+                {"g-devices", "设备运维", "appstore", null},
+                {"g-engineering", "工程项目", "project", null},
+                {"g-supply", "供应链中心", "shopping", null},
+                {"g-approval", "审批中心", "audit", null},
+                {"g-system", "系统管理", "setting", null}
+        };
+        String[][][] items = {
+                {{"/devices", "设备管理", "tool"}, {"/workorders", "维修工单", "file"}, {"/inspection", "巡检保养", "safety"}},
+                {{"/projects", "工程管理", "project"}, {"/rentals", "租赁管理", "carry"}},
+                {{"/suppliers", "供应商管理", "team"}, {"/purchases", "采购管理", "cart"}, {"/spare-parts", "备件库存", "database"}, {"/contracts", "客户合同", "file"}},
+                {{"/approval/config", "审批配置", "setting"}, {"/approval/instances", "审批实例", "audit"}},
+                {{"/announcements", "公告通知", "notice"}, {"/menus", "菜单管理", "menu"}, {"/users", "用户管理", "user"}, {"/orgs", "机构管理", "apartment"}}
+        };
+        saveMenu("item", "数据总览", "/dashboard", "dashboard", null, 10);
+        saveMenu("item", "数据图表", "/charts", "bar", null, 20);
+        for (int i = 0; i < parents.length; i++) {
+            SysMenu parent = saveMenu("parent", parents[i][1], null, parents[i][2], null, 100 + (i + 1) * 100);
+            for (int j = 0; j < items[i].length; j++) {
+                saveMenu("item", items[i][j][1], items[i][j][0], items[i][j][2], parent.getId(), 100 + (j + 1) * 10);
+            }
+        }
+        log.info("已初始化系统菜单");
+    }
+
+    private SysMenu saveMenu(String type, String name, String path, String icon, Long parentId, int sort) {
+        SysMenu m = new SysMenu();
+        m.setType(type);
+        m.setName(name);
+        m.setPath(path);
+        m.setIcon(icon);
+        m.setParentId(parentId);
+        m.setSort(sort);
+        m.setEnabled(true);
+        m.setCached(true);
+        return sysMenuRepository.save(m);
     }
 
     private Long ensureRootOrg() {

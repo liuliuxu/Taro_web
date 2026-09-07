@@ -1,6 +1,6 @@
-import { Drawer, Segmented, ColorPicker, Switch, Divider, Button, Space, Typography } from 'antd'
+import { Drawer, Segmented, ColorPicker, Switch, Divider, Button, Space, Typography, InputNumber } from 'antd'
 import { RotateLeftOutlined } from '@ant-design/icons'
-import { useThemeCtx, FONT_OPTIONS, DEFAULT_SETTINGS } from './theme'
+import { useThemeCtx, FONT_OPTIONS, DEFAULT_SETTINGS, resolveFontPx } from './theme'
 import type { MenuStyle } from './theme'
 
 const PRESETS = ['#FF6B1A', '#1677FF', '#00B96B', '#722ED1', '#FA541C', '#13C2C2', '#EB2F96', '#16283B']
@@ -51,9 +51,23 @@ export default function ThemeSettings({ open, onClose }: Props) {
           { label: '标准', value: 'normal' },
           { label: '大', value: 'large' }
         ]}
-        onChange={(v) => update({ fontSize: v as keyof typeof FONT_OPTIONS })}
+        onChange={(v) => update({ fontSize: v as keyof typeof FONT_OPTIONS, fontSizeCustom: undefined })}
       />
-      <div style={{ color: '#888', fontSize: 13, marginTop: 8 }}>示例文字，当前 {FONT_OPTIONS[s.fontSize]}px</div>
+      <div style={{ color: '#888', fontSize: 13, marginTop: 8 }}>
+        预设 {FONT_OPTIONS.small}px / {FONT_OPTIONS.normal}px / {FONT_OPTIONS.large}px
+        <Space style={{ marginLeft: 12 }}>
+          <span>自定义</span>
+          <InputNumber
+            size='small'
+            min={10}
+            max={24}
+            value={s.fontSizeCustom}
+            suffix='px'
+            onChange={(v) => update({ fontSizeCustom: v ?? undefined })}
+          />
+        </Space>
+        <div style={{ marginTop: 4 }}>当前 {resolveFontPx(s)}px</div>
+      </div>
 
       <Divider style={{ margin: '18px 0' }} />
       <Typography.Title level={5} style={{ fontSize: 14, marginBottom: 10 }}>工作区背景（浅色模式）</Typography.Title>

@@ -87,7 +87,7 @@ export default function Dashboard() {
 
   const d = stats.devices || {}
   const p = stats.projects || {}
-  const w = stats.workOrders || {}
+  const w = stats.workOrders || { created: 0, assigned: 0, processing: 0, review: 0, done: 0, total: 0, myTodos: 0 }
   const r = stats.rentals || {}
   const cats = stats.deviceCategories || {}
   const catItems = Object.entries(cats).sort((a, b) => b[1] - a[1])

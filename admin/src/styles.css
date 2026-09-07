@@ -20,15 +20,32 @@
   border-inline-end: none !important;
 }
 
-/* 选中菜单样式：高亮底色（默认走 antd） */
-.hm-menu-fill { }
+/* 选中菜单样式：高亮底色（跟随主题色） */
+.hm-menu-fill .ant-menu-item-selected {
+  background: color-mix(in srgb, var(--hm-color, #FF6B1A) 18%, transparent) !important;
+  color: var(--hm-color, #FF6B1A) !important;
+  font-weight: 600;
+}
+.hm-menu-fill .ant-menu-item-selected .ant-menu-item-icon {
+  color: var(--hm-color, #FF6B1A) !important;
+}
+.hm-menu-fill.ant-menu-dark .ant-menu-item-selected {
+  background: linear-gradient(135deg, var(--hm-color, #FF6B1A), rgba(242, 84, 14, 0.85)) !important;
+  color: #fff !important;
+}
+.hm-menu-fill.ant-menu-dark .ant-menu-item-selected .ant-menu-item-icon {
+  color: #fff !important;
+}
+.hm-menu-fill.ant-menu-light .ant-menu-item:hover {
+  background: color-mix(in srgb, var(--hm-color, #FF6B1A) 10%, transparent) !important;
+}
 
 /* 选中菜单样式：左侧指示条 */
 .hm-menu-bar .ant-menu-item {
   position: relative;
 }
 .hm-menu-bar .ant-menu-item-selected {
-  background: var(--hm-menu-selected, rgba(255,107,26,0.14)) !important;
+  background: color-mix(in srgb, var(--hm-color, #FF6B1A) 14%, transparent) !important;
 }
 .hm-menu-bar .ant-menu-item-selected::before {
   content: '';
@@ -38,15 +55,32 @@
   border-radius: 2px;
   background: var(--hm-color, #FF6B1A);
 }
+.hm-menu-bar .ant-menu-item-selected .ant-menu-item-icon,
+.hm-menu-bar .ant-menu-item-selected .ant-menu-title-content {
+  color: var(--hm-color, #FF6B1A) !important;
+}
 
 /* 选中菜单样式：圆角块 */
 .hm-menu-rounded .ant-menu-item-selected {
   border-radius: 10px;
-  background: var(--hm-color, #FF6B1A) !important;
+  background: linear-gradient(135deg, var(--hm-color, #FF6B1A), rgba(242, 84, 14, 0.9)) !important;
   color: #fff !important;
 }
-.hm-menu-rounded .ant-menu-item-selected .ant-menu-item-icon {
+.hm-menu-rounded .ant-menu-item-selected .ant-menu-item-icon,
+.hm-menu-rounded .ant-menu-item-selected .ant-menu-title-content {
   color: #fff !important;
+}
+.hm-menu-rounded.ant-menu-light .ant-menu-item:hover {
+  background: color-mix(in srgb, var(--hm-color, #FF6B1A) 12%, transparent) !important;
+}
+
+/* 展开分组标题跟随主题色 */
+.hm-menu .ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: var(--hm-color, #FF6B1A) !important;
+  font-weight: 600;
+}
+.hm-menu.ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: var(--hm-color, #FF6B1A) !important;
 }
 
 :root[data-theme='light'] body {

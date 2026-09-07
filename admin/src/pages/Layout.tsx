@@ -7,10 +7,11 @@ import {
   SettingOutlined, NotificationOutlined, ApartmentOutlined, AppstoreOutlined, ShoppingOutlined, BarChartOutlined,
   MenuUnfoldOutlined
 } from '@ant-design/icons'
-import type { User } from '../types'
+import type { User, SysMenu } from '../types'
 import type { ReactNode } from 'react'
 import { useThemeCtx } from '../theme'
 import ThemeSettings from '../ThemeSettings'
+import { get } from '../api'
 
 interface MenuLeaf { key: string; label: string; icon?: ReactNode }
 
@@ -21,7 +22,7 @@ interface MenuGroup {
   children?: MenuLeaf[]
 }
 
-const MENU_GROUPS: MenuGroup[] = [
+const STATIC_GROUPS: MenuGroup[] = [
   { key: '/dashboard', label: '数据总览', icon: <DashboardOutlined /> },
   { key: '/charts', label: '数据图表', icon: <BarChartOutlined /> },
   {
@@ -54,14 +55,34 @@ const MENU_GROUPS: MenuGroup[] = [
   {
     key: 'g-system', label: '系统管理', icon: <SettingOutlined />, children: [
       { key: '/announcements', label: '公告通知', icon: <NotificationOutlined /> },
+      { key: '/menus', label: '菜单管理', icon: <AppstoreOutlined /> },
       { key: '/users', label: '用户管理', icon: <UserOutlined /> },
       { key: '/orgs', label: '机构管理', icon: <ApartmentOutlined /> }
     ]
   }
 ]
 
-const MENU_ITEMS: MenuLeaf[] = MENU_GROUPS.flatMap((g) => (g.children ? g.children : [g]))
-const PAGE_PATHS = MENU_ITEMS.map((m) => m.key)
+const ICON_MAP: Record<string, ReactNode> = {
+  dashboard: <DashboardOutlined />,
+  bar: <BarChartOutlined />,
+  appstore: <AppstoreOutlined />,
+  tool: <ToolOutlined />,
+  file: <FileDoneOutlined />,
+  safety: <SafetyCertificateOutlined />,
+  project: <ProjectOutlined />,
+  carry: <CarryOutOutlined />,
+  shopping: <ShoppingOutlined />,
+  team: <TeamOutlined />,
+  cart: <ShoppingCartOutlined />,
+  database: <DatabaseOutlined />,
+  audit: <AuditOutlined />,
+  setting: <SettingOutlined />,
+  notice: <NotificationOutlined />,
+  user: <UserOutlined />,
+  apartment: <ApartmentOutlined />,
+  menu: <AppstoreOutlined />,
+  box: <DatabaseOutlined />
+}
 
 interface TabItem { path: string; label: string }
 
@@ -71,6 +92,34 @@ function luminance(hex: string) {
   const g = parseInt(c.substr(2, 2), 16) / 255
   const b = parseInt(c.substr(4, 2), 16) / 255
   return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+function buildMenus(db: SysMenu[] | null): MenuGroup[] {
+  if (!db || db.length === 0) return STATIC_GROUPS
+  const byId = new Map(db.map((m) => [m.id, m]))
+  const groups: MenuGroup[] = []
+  const enabled = db.filter((m) => m.enabled !== false)
+  const parents = enabled.filter((m) => m.type === 'parent').sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
+  for (const p of parents) {
+    const children = enabled
+      .filter((m) => m.type === 'item' && m.parentId === p.id)
+      .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
+    if (children.length > 0) {
+      groups.push({
+        key: 'db-' + p.id,
+        label: p.name,
+        icon: p.icon ? ICON_MAP[p.icon] : undefined,
+        children: children.map((c) => ({ key: c.path || '', label: c.name, icon: c.icon ? ICON_MAP[c.icon] : undefined }))
+      })
+    }
+  }
+  const topItems = enabled
+    .filter((m) => m.type === 'item' && (m.parentId == null || !byId.has(m.parentId)))
+    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
+  for (const m of topItems) {
+    groups.push({ key: m.path || 'db-item-' + m.id, label: m.name, icon: m.icon ? ICON_MAP[m.icon] : undefined })
+  }
+  return groups
 }
 
 export default function Layout() {
@@ -83,14 +132,26 @@ export default function Layout() {
 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [tabs, setTabs] = useState<TabItem[]>([])
+  const [dbMenus, setDbMenus] = useState<SysMenu[] | null>(null)
   const cacheRef = useRef(new Map<string, ReactNode>())
+
+  useEffect(() => {
+    const load = () => get<SysMenu[]>('/admin/menus/list').then(setDbMenus).catch(() => {})
+    load()
+    window.addEventListener('hm-menus-refresh', load)
+    return () => window.removeEventListener('hm-menus-refresh', load)
+  }, [])
+
+  const MENU_GROUPS = useMemo(() => buildMenus(dbMenus), [dbMenus])
+  const MENU_ITEMS: MenuLeaf[] = MENU_GROUPS.flatMap((g) => (g.children ? g.children : [g]))
+  const PAGE_PATHS = MENU_ITEMS.map((m) => m.key)
 
   const selected = useMemo(
     () => PAGE_PATHS.find((k) => location.pathname === k || location.pathname.startsWith(k + '/')) || '/dashboard',
-    [location.pathname]
+    [location.pathname, PAGE_PATHS]
   )
-  const group = useMemo(() => MENU_GROUPS.find((g) => (g.children || []).some((c) => c.key === selected)), [selected])
-  const label = useMemo(() => MENU_ITEMS.find((m) => m.key === selected)?.label || '数据总览', [selected])
+  const group = useMemo(() => MENU_GROUPS.find((g) => (g.children || []).some((c) => c.key === selected)), [selected, MENU_GROUPS])
+  const label = useMemo(() => MENU_ITEMS.find((m) => m.key === selected)?.label || '数据总览', [selected, MENU_ITEMS])
 
   const siderDark = !settings.siderVisible ? false : luminance(settings.siderColor) < 0.5
 

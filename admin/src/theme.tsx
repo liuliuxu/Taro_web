@@ -8,12 +8,15 @@ export const FONT_OPTIONS = {
   large: 16
 } as const
 
+export type FontKey = keyof typeof FONT_OPTIONS
+
 export type MenuStyle = 'fill' | 'bar' | 'rounded'
 
 export interface ThemeSettings {
   mode: 'light' | 'dark'
   color: string
-  fontSize: 'small' | 'normal' | 'large'
+  fontSize: FontKey
+  fontSizeCustom?: number
   bgColor: string
   cardColor: string
   siderColor: string
@@ -56,19 +59,29 @@ export interface ThemeCtxShape {
   update: (patch: Partial<ThemeSettings>) => void
   reset: () => void
   dark: boolean
+  fontPx: number
+}
+
+export function resolveFontPx(s: ThemeSettings): number {
+  if (s.fontSizeCustom && s.fontSizeCustom >= 10 && s.fontSizeCustom <= 24) {
+    return s.fontSizeCustom
+  }
+  return FONT_OPTIONS[s.fontSize]
 }
 
 export const ThemeCtx = createContext<ThemeCtxShape>({
   settings: DEFAULT_SETTINGS,
   update: () => {},
   reset: () => {},
-  dark: false
+  dark: false,
+  fontPx: FONT_OPTIONS.normal
 })
 export const useThemeCtx = () => useContext(ThemeCtx)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<ThemeSettings>(loadSettings)
   const dark = settings.mode === 'dark'
+  const fontPx = resolveFontPx(settings)
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
@@ -76,11 +89,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     document.documentElement.setAttribute('data-theme', settings.mode)
     const root = document.documentElement.style
     root.setProperty('--hm-color', settings.color)
-    root.setProperty('--hm-font', `${FONT_OPTIONS[settings.fontSize]}px`)
+    root.setProperty('--hm-font', `${fontPx}px`)
     root.setProperty('--hm-bg', dark ? '#0F1419' : settings.bgColor)
     root.setProperty('--hm-card', dark ? '#1F1F1F' : settings.cardColor)
     root.setProperty('--hm-sider', dark ? '#141414' : settings.siderColor)
-  }, [settings])
+  }, [settings, fontPx, dark])
 
   function update(patch: Partial<ThemeSettings>) {
     setSettings((s) => ({ ...s, ...patch }))
@@ -94,14 +107,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       algorithm: dark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
       token: {
         colorPrimary: settings.color,
-        fontSize: FONT_OPTIONS[settings.fontSize]
+        fontSize: fontPx
       }
     }),
-    [dark, settings.color, settings.fontSize]
+    [dark, settings.color, fontPx]
   )
 
   return (
-    <ThemeCtx.Provider value={{ settings, update, reset, dark }}>
+    <ThemeCtx.Provider value={{ settings, update, reset, dark, fontPx }}>
       <ConfigProvider theme={antdConfig}>
         {children}
       </ConfigProvider>

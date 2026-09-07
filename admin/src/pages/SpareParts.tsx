@@ -3,7 +3,7 @@ import { Table, Button, Modal, Form, Input, InputNumber, Select, Space, message,
 import { PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { get, post, put, del, qs } from '../api'
-import type { SparePart, StockRecord } from '../types'
+import type { SparePart } from '../types'
 import { fmtMoney } from '../meta'
 import { confirmAction } from '../confirm'
 import { useCachedState } from '../useCachedState'

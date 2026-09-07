@@ -64,6 +64,12 @@
   color: var(--hm-menu-color, var(--hm-color, #FF6B1A)) !important;
 }
 
+/* 顶部导航（横向）指示条：居下 */
+.hm-menu.ant-menu-horizontal.hm-menu-bar .ant-menu-item-selected::before {
+  left: 4px; right: 4px; top: auto; bottom: 4px;
+  width: auto;
+}
+
 /* 选中菜单样式：圆角块 */
 .hm-menu-rounded .ant-menu-item-selected {
   border-radius: 10px;

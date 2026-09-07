@@ -1,9 +1,15 @@
-import { Drawer, Segmented, ColorPicker, Switch, Divider, Button, Space, Typography, InputNumber } from 'antd'
+import { Drawer, Segmented, ColorPicker, Switch, Divider, Button, Space, Typography, InputNumber, Input, Select } from 'antd'
 import { RotateLeftOutlined } from '@ant-design/icons'
 import { useThemeCtx, FONT_OPTIONS, DEFAULT_SETTINGS, resolveFontPx } from './theme'
-import type { MenuStyle } from './theme'
+import type { MenuStyle, LayoutStyle } from './theme'
+import { ICON_MAP, ICON_OPTIONS } from './icons'
 
 const PRESETS = ['#FF6B1A', '#1677FF', '#00B96B', '#722ED1', '#FA541C', '#13C2C2', '#EB2F96', '#16283B']
+
+const LAYOUT_OPTIONS: { label: string; value: LayoutStyle; desc: string }[] = [
+  { label: '侧边栏布局', value: 'side', desc: '菜单在左侧' },
+  { label: '顶部导航', value: 'top', desc: '菜单在顶部' }
+]
 
 interface Props {
   open: boolean
@@ -28,6 +34,39 @@ export default function ThemeSettings({ open, onClose }: Props) {
         value={s.mode}
         options={[{ label: '浅色模式', value: 'light' }, { label: '深色模式', value: 'dark' }]}
         onChange={(v) => update({ mode: v as 'light' | 'dark' })}
+      />
+
+      <Divider style={{ margin: '18px 0' }} />
+      <Typography.Title level={5} style={{ fontSize: 14, marginBottom: 10 }}>布局方式</Typography.Title>
+      <Segmented
+        block size='large'
+        value={s.layout}
+        options={LAYOUT_OPTIONS.map((o) => ({ label: o.label, value: o.value }))}
+        onChange={(v) => update({ layout: v as LayoutStyle })}
+      />
+      <div style={{ color: '#888', fontSize: 12, marginTop: 6 }}>{LAYOUT_OPTIONS.find((o) => o.value === s.layout)?.desc}：表格、详情等页面内容会自适应布局。</div>
+
+      <Divider style={{ margin: '18px 0' }} />
+      <Typography.Title level={5} style={{ fontSize: 14, marginBottom: 10 }}>系统标识</Typography.Title>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <Space size={4}>
+          <Select
+            showSearch size='large' style={{ width: 200 }}
+            value={s.appIcon}
+            options={ICON_OPTIONS}
+            onChange={(v) => update({ appIcon: v })}
+          />
+        </Space>
+        <div style={{ width: 40, height: 40, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, background: s.color, color: '#fff' }}>
+          {ICON_MAP[s.appIcon] || ICON_MAP.compass}
+        </div>
+      </div>
+      <Input
+        size='large'
+        value={s.appName}
+        placeholder='请输入系统名称'
+        maxLength={20}
+        onChange={(e) => update({ appName: e.target.value })}
       />
 
       <Divider style={{ margin: '18px 0' }} />
@@ -111,17 +150,21 @@ export default function ThemeSettings({ open, onClose }: Props) {
       </div>
 
       <Divider style={{ margin: '18px 0' }} />
-      <Typography.Title level={5} style={{ fontSize: 14, marginBottom: 10 }}>侧边栏</Typography.Title>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 13 }}>侧边栏背景</span>
-          <ColorPicker value={s.siderColor} presets={[{ label: '预设', colors: ['#16283B', '#1E3A55', '#0F1419', '#001529', '#FFFFFF', '#F5F7FA'] }]} onChange={(c) => update({ siderColor: c.toHexString() })} />
+      {s.layout === 'side' && (
+        <>
+        <Typography.Title level={5} style={{ fontSize: 14, marginBottom: 10 }}>侧边栏</Typography.Title>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 13 }}>侧边栏背景</span>
+            <ColorPicker value={s.siderColor} presets={[{ label: '预设', colors: ['#16283B', '#1E3A55', '#0F1419', '#001529', '#FFFFFF', '#F5F7FA'] }]} onChange={(c) => update({ siderColor: c.toHexString() })} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 13 }}>显示侧边栏</span>
+            <Switch checked={s.siderVisible} onChange={(v) => update({ siderVisible: v })} />
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 13 }}>显示侧边栏</span>
-          <Switch checked={s.siderVisible} onChange={(v) => update({ siderVisible: v })} />
-        </div>
-      </div>
+        </>
+      )}
 
       <Divider style={{ margin: '18px 0' }} />
       <Typography.Title level={5} style={{ fontSize: 14, marginBottom: 10 }}>选中菜单样式</Typography.Title>

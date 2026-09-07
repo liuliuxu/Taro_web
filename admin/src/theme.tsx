@@ -12,8 +12,13 @@ export type FontKey = keyof typeof FONT_OPTIONS
 
 export type MenuStyle = 'fill' | 'bar' | 'rounded'
 
+export type LayoutStyle = 'side' | 'top'
+
 export interface ThemeSettings {
   mode: 'light' | 'dark'
+  layout: LayoutStyle
+  appName: string
+  appIcon: string
   color: string
   btnColor?: string
   linkColor?: string
@@ -31,6 +36,9 @@ export interface ThemeSettings {
 
 export const DEFAULT_SETTINGS: ThemeSettings = {
   mode: 'light',
+  layout: 'side',
+  appName: '机械数字化平台',
+  appIcon: 'compass',
   color: '#FF6B1A',
   fontSize: 'normal',
   bgColor: '#F0F2F5',

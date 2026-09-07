@@ -153,7 +153,8 @@ export default function Layout() {
   const group = useMemo(() => MENU_GROUPS.find((g) => (g.children || []).some((c) => c.key === selected)), [selected, MENU_GROUPS])
   const label = useMemo(() => MENU_ITEMS.find((m) => m.key === selected)?.label || '数据总览', [selected, MENU_ITEMS])
 
-  const siderDark = !settings.siderVisible ? false : luminance(settings.siderColor) < 0.5
+  const siderDark = dark || luminance(settings.siderColor) < 0.5
+  const isTop = settings.layout === 'top'
 
   useEffect(() => {
     if (!PAGE_PATHS.includes(location.pathname) && location.pathname !== '/') {
@@ -184,15 +185,30 @@ export default function Layout() {
     }
   }
 
-  const siderBg = settings.siderColor
+  const siderBg = 'var(--hm-sider)'
   const menuTheme = siderDark ? 'dark' : 'light'
+
+  const brandIcon = ICON_MAP[settings.appIcon] || ICON_MAP.compass
+  const brandName = settings.appName || '机械数字化平台'
+
+  const menuItems = MENU_GROUPS.map((g) =>
+    g.children
+      ? { key: g.key, label: g.label, icon: g.icon, children: g.children.map((c) => ({ key: c.key, label: c.label, icon: c.icon })) }
+      : { key: g.key, label: g.label, icon: g.icon }
+  )
+  const onMenuClick = ({ key }: { key: string }) => {
+    if (PAGE_PATHS.includes(key)) navigate(key)
+  }
+
+  const headerText = dark ? 'rgba(255,255,255,0.85)' : undefined
 
   return (
     <AntLayout style={{ minHeight: '100vh', background: 'var(--hm-bg)' }}>
-      {settings.siderVisible && (
+      {!isTop && settings.siderVisible && (
         <AntLayout.Sider theme={menuTheme} width={220} style={{ background: siderBg }}>
-          <div style={{ height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,' + settings.color + ', #F2540E)', fontWeight: 800, fontSize: 16, letterSpacing: 1, color: '#fff' }}>
-            机械数字化平台
+          <div style={{ height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'linear-gradient(135deg,' + settings.color + ', #F2540E)', fontWeight: 800, fontSize: 15, letterSpacing: 1, color: '#fff' }}>
+            <span style={{ fontSize: 18 }}>{brandIcon}</span>
+            {brandName}
           </div>
           <Menu
             key={group && group.children ? group.key : selected}
@@ -202,43 +218,55 @@ export default function Layout() {
             defaultOpenKeys={group && group.children ? [group.key] : []}
             className={`hm-menu hm-menu-${settings.menuStyle}`}
             style={{ background: 'transparent', color: siderDark ? 'rgba(255,255,255,0.75)' : undefined }}
-            items={MENU_GROUPS.map((g) =>
-              g.children
-                ? { key: g.key, label: g.label, icon: g.icon, children: g.children.map((c) => ({ key: c.key, label: c.label, icon: c.icon })) }
-                : { key: g.key, label: g.label, icon: g.icon }
-            )}
-            onClick={({ key }) => {
-              if (PAGE_PATHS.includes(key)) navigate(key)
-            }}
+            items={menuItems}
+            onClick={onMenuClick}
           />
         </AntLayout.Sider>
       )}
       <AntLayout>
         <AntLayout.Header
           style={{
-            background: 'var(--hm-card)', color: dark ? 'rgba(255,255,255,0.85)' : undefined,
-            padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            boxShadow: '0 1px 4px rgba(0,21,41,0.08)'
+            background: 'var(--hm-card)', color: headerText,
+            padding: isTop ? '0 16px' : '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            boxShadow: '0 1px 4px rgba(0,21,41,0.08)', gap: 16
           }}
         >
-          <Space>
-            {!settings.siderVisible && (
-              <Tooltip title='显示侧边栏'>
-                <Button type='text' icon={<MenuUnfoldOutlined />} onClick={() => update({ siderVisible: true })} />
-              </Tooltip>
-            )}
-            <Breadcrumb style={{ fontSize: 14 }}
-              items={[
-                ...(group ? [{ title: group.label }] : []),
-                { title: <b>{label}</b> }
-              ]} />
-          </Space>
+          {isTop && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', whiteSpace: 'nowrap' }} onClick={() => navigate('/dashboard')}>
+              <div style={{ width: 34, height: 34, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, background: 'linear-gradient(135deg,' + settings.color + ', #F2540E)', color: '#fff' }}>
+                {brandIcon}
+              </div>
+              <b style={{ fontSize: 16 }}>{brandName}</b>
+            </div>
+          )}
+          {isTop
+            ? <Menu
+                theme={dark ? 'dark' : 'light'}
+                mode='horizontal'
+                selectedKeys={[group && group.children ? group.key : selected]}
+                className={`hm-menu hm-menu-${settings.menuStyle}`}
+                style={{ flex: 1, minWidth: 0, background: 'transparent' }}
+                items={menuItems}
+                onClick={onMenuClick}
+              />
+            : <Space>
+                {!settings.siderVisible && (
+                  <Tooltip title='显示侧边栏'>
+                    <Button type='text' icon={<MenuUnfoldOutlined />} onClick={() => update({ siderVisible: true })} />
+                  </Tooltip>
+                )}
+                <Breadcrumb style={{ fontSize: 14 }}
+                  items={[
+                    ...(group ? [{ title: group.label }] : []),
+                    { title: <b>{label}</b> }
+                  ]} />
+              </Space>}
           <Space>
             <Tooltip title='主题与布局设置'>
               <Button type='text' icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)} />
             </Tooltip>
             <UserOutlined />
-            <span style={{ color: dark ? 'rgba(255,255,255,0.85)' : undefined }}>{user?.nickname || user?.username || '管理员'}</span>
+            <span style={{ color: headerText }}>{user?.nickname || user?.username || '管理员'}</span>
             <Dropdown
               menu={{ items: [{ key: 'logout', icon: <LogoutOutlined />, label: '退出登录', onClick: () => { localStorage.removeItem('hm_token'); localStorage.removeItem('hm_user'); navigate('/login', { replace: true }) } }] }}
             >

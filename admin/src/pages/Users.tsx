@@ -109,7 +109,7 @@ export default function UsersPage() {
       </Space>
       <Table rowKey='id' dataSource={list} columns={columns} size='small' pagination={false} />
       <Modal title={editing ? `编辑用户 · ${editing.username}` : '新增用户'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={680}>
-        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+        <Form form={form} labelCol={{ flex: '0 0 110px' }} wrapperCol={{ flex: 1 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='username' label='用户名' rules={[{ required: true, message: '请填写用户名' }]}>
               <Input disabled={!!editing} />

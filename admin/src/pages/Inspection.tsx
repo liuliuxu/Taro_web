@@ -99,7 +99,7 @@ export default function Inspection() {
       </Space>
       <Table rowKey='id' dataSource={list} columns={columns} size='small' pagination={false} />
       <Modal title={editing ? '编辑计划' : '新增巡检/保养计划'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={640}>
-        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+        <Form form={form} labelCol={{ flex: '0 0 110px' }} wrapperCol={{ flex: 1 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='machineryId' label='设备' rules={[{ required: true, message: '请选择设备' }]}>
               <Select showSearch optionFilterProp='label' options={machines.map((m) => ({ value: m.id, label: m.name }))} />

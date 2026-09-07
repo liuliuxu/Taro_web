@@ -95,7 +95,7 @@ export default function Projects() {
         pagination={{ current: page, pageSize, total, showTotal: (t) => `共 ${t} 个` }}
         onChange={(pg) => load(pg.current || 1)} />
       <Modal title={editing ? '编辑项目' : '新增项目'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={640}>
-        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+        <Form form={form} labelCol={{ flex: '0 0 110px' }} wrapperCol={{ flex: 1 }}>
           <Form.Item name='name' label='项目名称' rules={[{ required: true, message: '请填写项目名称' }]}>
             <Input />
           </Form.Item>

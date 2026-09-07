@@ -119,7 +119,7 @@ export default function SpareParts() {
           ]} />
       </Card>
       <Modal title={editing ? '编辑备件' : '新增备件'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={680}>
-        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+        <Form form={form} labelCol={{ flex: '0 0 110px' }} wrapperCol={{ flex: 1 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='partNo' label='编号' rules={[{ required: true, message: '请填写编号' }]}><Input /></Form.Item>
             <Form.Item name='name' label='名称' rules={[{ required: true, message: '请填写名称' }]}><Input /></Form.Item>

@@ -1,5 +1,61 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* 主题 CSS 变量（JS 侧动态覆盖） */
+:root {
+  --hm-bg: #F0F2F5;
+  --hm-card: #FFFFFF;
+  --hm-color: #FF6B1A;
+  --hm-font: 14px;
+}
+
+/* 表单：文本域等整行字段与两列字段对齐（固定 label 列宽） */
+.ant-form-item-label > label {
+  white-space: normal;
+  line-height: 1.4;
+  height: auto;
+}
+
+/* 侧边栏菜单：透明背景，保留选中态 */
+.hm-menu {
+  border-inline-end: none !important;
+}
+
+/* 选中菜单样式：高亮底色（默认走 antd） */
+.hm-menu-fill { }
+
+/* 选中菜单样式：左侧指示条 */
+.hm-menu-bar .ant-menu-item {
+  position: relative;
+}
+.hm-menu-bar .ant-menu-item-selected {
+  background: var(--hm-menu-selected, rgba(255,107,26,0.14)) !important;
+}
+.hm-menu-bar .ant-menu-item-selected::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 8px; bottom: 8px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--hm-color, #FF6B1A);
+}
+
+/* 选中菜单样式：圆角块 */
+.hm-menu-rounded .ant-menu-item-selected {
+  border-radius: 10px;
+  background: var(--hm-color, #FF6B1A) !important;
+  color: #fff !important;
+}
+.hm-menu-rounded .ant-menu-item-selected .ant-menu-item-icon {
+  color: #fff !important;
+}
+
+:root[data-theme='light'] body {
+  background: var(--hm-bg, #F0F2F5);
+}
+:root[data-theme='dark'] body {
+  background: var(--hm-bg, #0F1419);
+}
+
 :root {
   --brand: #FF6B1A;
   --brand-dark: #F2540E;
@@ -18,9 +74,9 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  font-size: 14px;
+  font-size: var(--hm-font, 14px);
   color: var(--text-1);
-  background: var(--bg);
+  background: var(--hm-bg, var(--bg));
 }
 
 /* 登录页 */

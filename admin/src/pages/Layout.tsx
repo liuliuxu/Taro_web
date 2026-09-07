@@ -1,35 +1,24 @@
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Layout as AntLayout, Menu, Dropdown, Space, Typography, Breadcrumb } from 'antd'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom'
+import { Layout as AntLayout, Menu, Dropdown, Space, Breadcrumb, Tabs, Button, Tooltip } from 'antd'
 import {
-  LogoutOutlined,
-  UserOutlined,
-  DashboardOutlined,
-  ToolOutlined,
-  FileDoneOutlined,
-  SafetyCertificateOutlined,
-  ProjectOutlined,
-  CarryOutOutlined,
-  TeamOutlined,
-  ShoppingCartOutlined,
-  DatabaseOutlined,
-  AuditOutlined,
-  SettingOutlined,
-  NotificationOutlined,
-  ApartmentOutlined,
-  AppstoreOutlined,
-  ShoppingOutlined,
-  BarChartOutlined,
-  BulbOutlined
+  LogoutOutlined, UserOutlined, DashboardOutlined, ToolOutlined, FileDoneOutlined, SafetyCertificateOutlined,
+  ProjectOutlined, CarryOutOutlined, TeamOutlined, ShoppingCartOutlined, DatabaseOutlined, AuditOutlined,
+  SettingOutlined, NotificationOutlined, ApartmentOutlined, AppstoreOutlined, ShoppingOutlined, BarChartOutlined,
+  MenuUnfoldOutlined
 } from '@ant-design/icons'
 import type { User } from '../types'
 import type { ReactNode } from 'react'
 import { useThemeCtx } from '../theme'
+import ThemeSettings from '../ThemeSettings'
+
+interface MenuLeaf { key: string; label: string; icon?: ReactNode }
 
 interface MenuGroup {
   key: string
   label: string
   icon?: ReactNode
-  children?: { key: string; label: string }[]
+  children?: MenuLeaf[]
 }
 
 const MENU_GROUPS: MenuGroup[] = [
@@ -71,85 +60,166 @@ const MENU_GROUPS: MenuGroup[] = [
   }
 ]
 
-const MENU_ITEMS: { key: string; label: string }[] = MENU_GROUPS.flatMap((g) => (g.children ? g.children : [g]))
+const MENU_ITEMS: MenuLeaf[] = MENU_GROUPS.flatMap((g) => (g.children ? g.children : [g]))
+const PAGE_PATHS = MENU_ITEMS.map((m) => m.key)
+
+interface TabItem { path: string; label: string }
+
+function luminance(hex: string) {
+  const c = hex.replace('#', '')
+  const r = parseInt(c.substr(0, 2), 16) / 255
+  const g = parseInt(c.substr(2, 2), 16) / 255
+  const b = parseInt(c.substr(4, 2), 16) / 255
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
 
 export default function Layout() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { theme, changeTheme } = useThemeCtx()
+  const outlet = useOutlet()
+  const { settings, update, dark } = useThemeCtx()
   const raw = localStorage.getItem('hm_user')
   const user: User | null = raw ? JSON.parse(raw) : null
-  const dark = theme === 'dark'
 
-  const selected = MENU_ITEMS.map((m) => m.key).find((k) => location.pathname === k || location.pathname.startsWith(k + '/')) || '/dashboard'
-  const group = MENU_GROUPS.find((g) => (g.children || []).some((c) => c.key === selected))
-  const label = MENU_ITEMS.find((m) => m.key === selected)?.label || '数据总览'
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [tabs, setTabs] = useState<TabItem[]>([])
+  const cacheRef = useRef(new Map<string, ReactNode>())
 
-  function logout() {
-    localStorage.removeItem('hm_token')
-    localStorage.removeItem('hm_user')
-    navigate('/login', { replace: true })
+  const selected = useMemo(
+    () => PAGE_PATHS.find((k) => location.pathname === k || location.pathname.startsWith(k + '/')) || '/dashboard',
+    [location.pathname]
+  )
+  const group = useMemo(() => MENU_GROUPS.find((g) => (g.children || []).some((c) => c.key === selected)), [selected])
+  const label = useMemo(() => MENU_ITEMS.find((m) => m.key === selected)?.label || '数据总览', [selected])
+
+  const siderDark = !settings.siderVisible ? false : luminance(settings.siderColor) < 0.5
+
+  useEffect(() => {
+    if (!PAGE_PATHS.includes(location.pathname) && location.pathname !== '/') {
+      navigate('/dashboard', { replace: true })
+      return
+    }
+    const path = PAGE_PATHS.includes(location.pathname) ? location.pathname : '/dashboard'
+    setTabs((prev) => prev.some((t) => t.path === path)
+      ? prev
+      : [...prev, { path, label: MENU_ITEMS.find((m) => m.key === path)?.label || path }])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, navigate])
+
+  // 渲染期写入页面缓存，保证 keep-alive 元素先于渲染存在
+  if (location.pathname && PAGE_PATHS.includes(location.pathname) && !cacheRef.current.has(location.pathname)) {
+    cacheRef.current.set(location.pathname, outlet)
   }
 
+  function closeTab(path: string) {
+    const idx = tabs.findIndex((t) => t.path === path)
+    if (idx < 0) return
+    cacheRef.current.delete(path)
+    const next = tabs.filter((t) => t.path !== path)
+    setTabs(next)
+    if (selected === path) {
+      const target = next[Math.min(idx, next.length - 1)]
+      navigate(target ? target.path : '/dashboard')
+    }
+  }
+
+  const siderBg = settings.siderColor
+  const menuTheme = siderDark ? 'dark' : 'light'
+
   return (
-    <AntLayout style={{ minHeight: '100vh', background: dark ? '#000' : '#F0F2F5' }}>
-      <AntLayout.Sider theme={dark ? 'light' : 'dark'} width={220}>
-        <div style={{ height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#FF8A3D,#F2540E)', fontWeight: 800, fontSize: 16, letterSpacing: 1, color: '#fff' }}>
-          机械数字化平台
-        </div>
-        <Menu
-          theme={dark ? 'light' : 'dark'}
-          mode='inline'
-          selectedKeys={[selected]}
-          defaultOpenKeys={group ? [group.key] : []}
-          items={MENU_GROUPS.map((g) =>
-            g.children
-              ? { key: g.key, label: g.label, icon: g.icon, children: g.children.map((c) => ({ key: c.key, label: c.label, icon: c.icon })) }
-              : { key: g.key, label: g.label, icon: g.icon }
-          )}
-          onClick={({ key }) => {
-            if (MENU_ITEMS.some((m) => m.key === key)) navigate(key)
-          }}
-        />
-      </AntLayout.Sider>
+    <AntLayout style={{ minHeight: '100vh', background: 'var(--hm-bg)' }}>
+      {settings.siderVisible && (
+        <AntLayout.Sider theme={menuTheme} width={220} style={{ background: siderBg }}>
+          <div style={{ height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,' + settings.color + ', #F2540E)', fontWeight: 800, fontSize: 16, letterSpacing: 1, color: '#fff' }}>
+            机械数字化平台
+          </div>
+          <Menu
+            key={group && group.children ? group.key : selected}
+            theme={menuTheme}
+            mode='inline'
+            selectedKeys={[selected]}
+            defaultOpenKeys={group && group.children ? [group.key] : []}
+            className={`hm-menu hm-menu-${settings.menuStyle}`}
+            style={{ background: 'transparent', color: siderDark ? 'rgba(255,255,255,0.75)' : undefined }}
+            items={MENU_GROUPS.map((g) =>
+              g.children
+                ? { key: g.key, label: g.label, icon: g.icon, children: g.children.map((c) => ({ key: c.key, label: c.label, icon: c.icon })) }
+                : { key: g.key, label: g.label, icon: g.icon }
+            )}
+            onClick={({ key }) => {
+              if (PAGE_PATHS.includes(key)) navigate(key)
+            }}
+          />
+        </AntLayout.Sider>
+      )}
       <AntLayout>
         <AntLayout.Header
-          style={{ background: dark ? '#141414' : '#fff', color: dark ? 'rgba(255,255,255,0.85)' : undefined, padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,21,41,0.08)' }}
+          style={{
+            background: 'var(--hm-card)', color: dark ? 'rgba(255,255,255,0.85)' : undefined,
+            padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            boxShadow: '0 1px 4px rgba(0,21,41,0.08)'
+          }}
         >
-          <Breadcrumb style={{ fontSize: 14 }}
-            items={[
-              ...(group ? [{ title: group.label }] : []),
-              { title: <b>{label}</b> }
-            ]} />
           <Space>
-            <Dropdown
-              menu={{
-                selectable: true,
-                selectedKeys: [theme],
-                items: [
-                  { key: 'light', icon: <BulbOutlined />, label: '浅色模式' },
-                  { key: 'dark', icon: <BulbOutlined />, label: '深色模式' }
-                ],
-                onClick: ({ key }) => changeTheme(key)
-              }}
-            >
-              <span style={{ cursor: 'pointer' }}><BulbOutlined /> 主题</span>
-            </Dropdown>
+            {!settings.siderVisible && (
+              <Tooltip title='显示侧边栏'>
+                <Button type='text' icon={<MenuUnfoldOutlined />} onClick={() => update({ siderVisible: true })} />
+              </Tooltip>
+            )}
+            <Breadcrumb style={{ fontSize: 14 }}
+              items={[
+                ...(group ? [{ title: group.label }] : []),
+                { title: <b>{label}</b> }
+              ]} />
+          </Space>
+          <Space>
+            <Tooltip title='主题与布局设置'>
+              <Button type='text' icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)} />
+            </Tooltip>
             <UserOutlined />
-            <span>{user?.nickname || user?.username || '管理员'}</span>
+            <span style={{ color: dark ? 'rgba(255,255,255,0.85)' : undefined }}>{user?.nickname || user?.username || '管理员'}</span>
             <Dropdown
-              menu={{ items: [{ key: 'logout', icon: <LogoutOutlined />, label: '退出登录', onClick: logout }] }}
+              menu={{ items: [{ key: 'logout', icon: <LogoutOutlined />, label: '退出登录', onClick: () => { localStorage.removeItem('hm_token'); localStorage.removeItem('hm_user'); navigate('/login', { replace: true }) } }] }}
             >
               <span style={{ cursor: 'pointer' }}>···</span>
             </Dropdown>
           </Space>
         </AntLayout.Header>
+
+        {settings.multiTab && tabs.length > 0 && (
+          <div style={{ background: 'var(--hm-card)', padding: '4px 16px 0', boxShadow: '0 1px 3px rgba(0,21,41,0.05)' }}>
+            <Tabs
+              type='editable-card'
+              hideAdd
+              size='small'
+              activeKey={selected}
+              items={tabs.map((t) => ({
+                key: t.path,
+                label: t.label,
+                closable: t.path !== '/dashboard'
+              }))}
+              onChange={(key) => navigate(key)}
+              onEdit={(targetKey, action) => { if (action === 'remove') closeTab(targetKey as string) }}
+            />
+          </div>
+        )}
+
         <AntLayout.Content style={{ margin: 16 }}>
-          <div style={{ background: dark ? '#1f1f1f' : '#fff', padding: 24, borderRadius: 8, minHeight: 'calc(100vh - 160px)' }}>
-            <Outlet />
+          <div
+            style={{
+              background: 'var(--hm-card)', padding: 24, borderRadius: 8,
+              minHeight: settings.multiTab ? 'calc(100vh - 210px)' : 'calc(100vh - 160px)'
+            }}
+          >
+            {tabs.map((t) => (
+              <div key={t.path} style={{ display: selected === t.path ? 'block' : 'none' }}>
+                {cacheRef.current.get(t.path)}
+              </div>
+            ))}
           </div>
         </AntLayout.Content>
       </AntLayout>
+      <ThemeSettings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </AntLayout>
   )
 }

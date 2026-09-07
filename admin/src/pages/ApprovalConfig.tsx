@@ -232,7 +232,7 @@ export default function ApprovalConfig() {
       ]} />
 
       <Modal title='选项集' open={osModal} onOk={saveOptionSet} onCancel={() => setOsModal(false)} destroyOnClose width={560}>
-        <Form form={osForm} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+        <Form form={osForm} labelCol={{ flex: '0 0 110px' }} wrapperCol={{ flex: 1 }}>
           <Form.Item name='code' label='编码' rules={[{ required: true, message: '请填写编码' }]}><Input /></Form.Item>
           <Form.Item name='name' label='名称' rules={[{ required: true, message: '请填写名称' }]}><Input /></Form.Item>
           <Form.Item name='optionsJson' label='选项（JSON）' extra='格式：[{"label":"设备部","value":"equipment"}]'
@@ -244,7 +244,7 @@ export default function ApprovalConfig() {
       </Modal>
 
       <Modal title={formMeta ? '编辑表单' : '新建表单'} open={formModal} onOk={saveForm} onCancel={() => setFormModal(false)} width={820}>
-        <Form form={fform} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+        <Form form={fform} labelCol={{ flex: '0 0 110px' }} wrapperCol={{ flex: 1 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='name' label='表单名称' rules={[{ required: true, message: '请填写名称' }]}><Input /></Form.Item>
             <Form.Item name='bizType' label='业务类型（回调用：purchase/rental/workorder_cost/disposal）'><Input /></Form.Item>
@@ -280,7 +280,7 @@ export default function ApprovalConfig() {
       </Modal>
 
       <Modal title={procMeta ? '编辑流程' : '新建流程'} open={procModal} onOk={saveProcess} onCancel={() => setProcModal(false)} width={720}>
-        <Form form={pform} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+        <Form form={pform} labelCol={{ flex: '0 0 110px' }} wrapperCol={{ flex: 1 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='name' label='流程名称' rules={[{ required: true, message: '请填写名称' }]}><Input /></Form.Item>
             <Form.Item name='formId' label='关联表单' rules={[{ required: true, message: '请选择表单' }]}>

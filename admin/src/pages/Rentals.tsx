@@ -88,7 +88,7 @@ export default function Rentals() {
         pagination={{ current: page, pageSize, total, showTotal: (t) => `共 ${t} 份` }}
         onChange={(pg) => load(pg.current || 1)} />
       <Modal title='新建租赁合同' open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={640}>
-        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+        <Form form={form} labelCol={{ flex: '0 0 110px' }} wrapperCol={{ flex: 1 }}>
           <Form.Item name='machineryId' label='租赁设备' rules={[{ required: true, message: '请选择设备' }]}>
             <Select showSearch optionFilterProp='label'
               options={machines.map((m) => ({ value: m.id, label: `${m.name}（${m.model || m.category}）· ${fmtMoney(m.price)} 元/天` }))} />

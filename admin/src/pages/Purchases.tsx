@@ -99,7 +99,7 @@ export default function Purchases() {
       </Space>
       <Table rowKey='id' dataSource={list} columns={columns} size='small' pagination={false} />
       <Modal title='新建采购申请' open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={680}>
-        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+        <Form form={form} labelCol={{ flex: '0 0 110px' }} wrapperCol={{ flex: 1 }}>
           <Form.Item name='itemName' label='物料名称' rules={[{ required: true, message: '请填写物料名称' }]}><Input /></Form.Item>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='supplierId' label='供应商'><Select allowClear options={suppliers.map((s) => ({ value: s.id, label: s.name }))} /></Form.Item>

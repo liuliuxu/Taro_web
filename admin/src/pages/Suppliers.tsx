@@ -79,7 +79,7 @@ export default function Suppliers() {
       </Space>
       <Table rowKey='id' dataSource={list} columns={columns} size='small' pagination={false} />
       <Modal title={editing ? '编辑供应商' : '新增供应商'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={680}>
-        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+        <Form form={form} labelCol={{ flex: '0 0 110px' }} wrapperCol={{ flex: 1 }}>
           <Form.Item name='name' label='供应商名称' rules={[{ required: true, message: '请填写名称' }]}><Input /></Form.Item>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <Form.Item name='contact' label='联系人'><Input /></Form.Item>

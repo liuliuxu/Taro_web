@@ -3,17 +3,16 @@ import { Card, Row, Col, Statistic, Table, Tag, Typography, Button } from 'antd'
 import { get } from '../api'
 import type { FinanceData, Machinery, StatsData, ChartsData } from '../types'
 import * as echarts from 'echarts'
+import { useThemeCtx } from '../theme'
 
-const ORANGE = '#FF6B1A'
-
-function MiniPie({ data }: { data: [string, number][] }) {
+function MiniPie({ data, color }: { data: [string, number][]; color: string }) {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!ref.current || data.length === 0) return
     const chart = echarts.init(ref.current)
     chart.setOption({
       tooltip: { trigger: 'item' },
-      color: ['#FF6B1A', '#0EA5E9', '#22C55E', '#8B5CF6', '#F59E0B', '#14B8A6'],
+      color: [color, '#0EA5E9', '#22C55E', '#8B5CF6', '#F59E0B', '#14B8A6'],
       series: [{
         type: 'pie', radius: ['45%', '70%'], center: ['50%', '48%'],
         label: { show: false },
@@ -23,11 +22,11 @@ function MiniPie({ data }: { data: [string, number][] }) {
     const rs = () => chart.resize()
     window.addEventListener('resize', rs)
     return () => { window.removeEventListener('resize', rs); chart.dispose() }
-  }, [data])
+  }, [data, color])
   return <div ref={ref} style={{ width: '100%', height: 220 }} />
 }
 
-function MiniLine({ months }: { months: { month: string; count: number }[] }) {
+function MiniLine({ months, color }: { months: { month: string; count: number }[]; color: string }) {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!ref.current || months.length === 0) return
@@ -40,18 +39,20 @@ function MiniLine({ months }: { months: { month: string; count: number }[] }) {
       series: [{
         type: 'line', smooth: true,
         data: months.map((m) => m.count),
-        itemStyle: { color: ORANGE },
-        areaStyle: { color: 'rgba(255,107,26,0.15)' }
+        itemStyle: { color },
+        areaStyle: { color: color + '26' }
       }]
     })
     const rs = () => chart.resize()
     window.addEventListener('resize', rs)
     return () => { window.removeEventListener('resize', rs); chart.dispose() }
-  }, [months])
+  }, [months, color])
   return <div ref={ref} style={{ width: '100%', height: 220 }} />
 }
 
 export default function Dashboard() {
+  const { settings } = useThemeCtx()
+  const color = settings.color
   const [stats, setStats] = useState<StatsData | null>(null)
   const [fin, setFin] = useState<FinanceData | null>(null)
   const [charts, setCharts] = useState<ChartsData | null>(null)
@@ -138,14 +139,14 @@ export default function Dashboard() {
                     { title: '台数', dataIndex: 'count', render: (v) => <Tag color='blue'>{v}</Tag> }
                   ]}
                 />
-                <MiniPie data={catItems} />
+                <MiniPie data={catItems} color={color} />
               </>
             )}
           </Card>
         </Col>
         <Col xs={24} md={12}>
           <Card title='工单近6月新增趋势' size='small'>
-            {charts?.workOrderByMonth?.length ? <MiniLine months={charts.workOrderByMonth} /> : <Typography.Text type='secondary'>暂无数据</Typography.Text>}
+            {charts?.workOrderByMonth?.length ? <MiniLine months={charts.workOrderByMonth} color={color} /> : <Typography.Text type='secondary'>暂无数据</Typography.Text>}
           </Card>
         </Col>
       </Row>
@@ -155,14 +156,14 @@ export default function Dashboard() {
           {charts.approvalByMonth?.length ? (
             <Col xs={24} md={12}>
               <Card title='审批近6月发起趋势' size='small'>
-                <MiniLine months={charts.approvalByMonth} />
+                <MiniLine months={charts.approvalByMonth} color={color} />
               </Card>
             </Col>
           ) : null}
           {charts.purchaseByMonth?.length ? (
             <Col xs={24} md={12}>
               <Card title='采购近6月金额（元）' size='small'>
-                <MiniLine months={charts.purchaseByMonth.map((m) => ({ month: m.month, count: Math.round(m.amount) }))} />
+                <MiniLine months={charts.purchaseByMonth.map((m) => ({ month: m.month, count: Math.round(m.amount) }))} color={color} />
               </Card>
             </Col>
           ) : null}

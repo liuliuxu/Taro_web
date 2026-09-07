@@ -104,7 +104,7 @@ export default function Orgs() {
         </Card>
       </Col>
       <Modal title={editing ? '编辑机构' : '新增机构'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose width={560}>
-        <Form form={form} labelCol={{ span: 6 }} wrapperCol={{ span: 18 }}>
+        <Form form={form} labelCol={{ flex: '0 0 110px' }} wrapperCol={{ flex: 1 }}>
           {!editing && (
             <Form.Item name='parentId' label='上级机构'>
               <Select allowClear placeholder='不选则为顶级机构' options={flat.filter((o) => o.id !== undefined).map((o) => ({ value: o.id, label: o.name }))} />

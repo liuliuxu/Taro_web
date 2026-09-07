@@ -3,8 +3,8 @@ import { Card, Row, Col, Typography } from 'antd'
 import * as echarts from 'echarts'
 import { get } from '../api'
 import type { ChartsData } from '../types'
+import { useThemeCtx } from '../theme'
 
-const ORANGE = '#FF6B1A'
 const PALETTE = ['#FF6B1A', '#0EA5E9', '#22C55E', '#8B5CF6', '#F59E0B', '#F43F5E', '#14B8A6', '#6366F1', '#F97316', '#84CC16']
 const STATUS_LABEL: Record<string, string> = {
   created: '待派单',
@@ -33,8 +33,11 @@ function Chart({ option, height = 260 }: { option: echarts.EChartsOption; height
     chart.setOption(option)
     const onResize = () => chart.resize()
     window.addEventListener('resize', onResize)
+    const ro = new ResizeObserver(() => chart.resize())
+    ro.observe(ref.current)
     return () => {
       window.removeEventListener('resize', onResize)
+      ro.disconnect()
       chart.dispose()
     }
   }, [option])
@@ -45,6 +48,8 @@ function Chart({ option, height = 260 }: { option: echarts.EChartsOption; height
 export default function Charts() {
   const [data, setData] = useState<ChartsData | null>(null)
   const [err, setErr] = useState('')
+  const { settings } = useThemeCtx()
+  const ORANGE = settings.color
 
   useEffect(() => {
     get<ChartsData>('/admin/stats/charts').then(setData).catch((e) => setErr(e?.message || '加载失败'))
@@ -55,7 +60,7 @@ export default function Charts() {
 
   const d = data
   const pie = (rows: [string, number][], name: string) => ({
-    tooltip: { trigger: 'item' },
+    tooltip: { trigger: 'item' as const },
     legend: { bottom: 0, type: 'scroll' },
     color: PALETTE,
     series: [{
@@ -68,7 +73,7 @@ export default function Charts() {
   })
 
   const bar = (rows: [string, number][], name: string, horizontal = false) => ({
-    tooltip: { trigger: 'axis' },
+    tooltip: { trigger: 'axis' as const },
     grid: { left: horizontal ? 90 : 8, right: 12, top: 30, bottom: 8, containLabel: true },
     xAxis: horizontal
       ? { type: 'value' as const, axisLabel: { color: '#999' } }
@@ -86,7 +91,7 @@ export default function Charts() {
   })
 
   const line = (rows: { month: string; count: number }[], name: string) => ({
-    tooltip: { trigger: 'axis' },
+    tooltip: { trigger: 'axis' as const },
     grid: { left: 8, right: 8, top: 30, bottom: 8, containLabel: true },
     xAxis: { type: 'category' as const, data: rows.map((r) => r.month), axisLabel: { color: '#999' } },
     yAxis: { type: 'value' as const, axisLabel: { color: '#999' } },
@@ -102,7 +107,7 @@ export default function Charts() {
   })
 
   const amountBar = (rows: { month: string; amount: number }[]) => ({
-    tooltip: { trigger: 'axis', valueFormatter: (v: number) => `¥${(v || 0).toFixed(2)}万` },
+    tooltip: { trigger: 'axis' as const, valueFormatter: (v: number) => `¥${(v || 0).toFixed(2)}万` },
     grid: { left: 8, right: 8, top: 30, bottom: 8, containLabel: true },
     xAxis: { type: 'category' as const, data: rows.map((r) => r.month), axisLabel: { color: '#999' } },
     yAxis: { type: 'value' as const, axisLabel: { color: '#999' } },

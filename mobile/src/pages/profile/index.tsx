@@ -14,6 +14,14 @@ const THEMES = [
   { key: 'blue', label: '科技蓝主题', desc: '科技蓝强调色' }
 ]
 
+const CUSTOM_COLORS = ['#FF5A2E', '#16A34A', '#0E86D4', '#ED8936', '#8B5CF6', '#D6336C']
+
+const PRESET_ORANGE = '#FF6B1A'
+
+function isCustomColor(v: unknown): v is string {
+  return typeof v === 'string' && v.startsWith('#')
+}
+
 export default function Profile() {
   const [user, setUser] = useState<User | null>(null)
   const [loggedIn, setLoggedIn] = useState(false)
@@ -197,6 +205,17 @@ export default function Profile() {
             </View>
           ))}
         </View>
+
+        {/* 自定义主题色 */}
+        <View className='theme-colors'>
+          {[PRESET_ORANGE, ...CUSTOM_COLORS].map((c) => {
+            const active = isCustomColor(themeKey) ? c.toLowerCase() === themeKey.toLowerCase() : (!themeKey || themeKey === 'orange') && c === PRESET_ORANGE
+            return (
+              <View key={c} className={`theme-color-dot ${active ? 'on' : ''}`} style={{ background: c }} onClick={() => pickTheme(c)} />
+            )
+          })}
+        </View>
+        <Text className='theme-colors-tip'>选择强调色，橙色为默认主题</Text>
       </View>
 
       {/* 关于 */}

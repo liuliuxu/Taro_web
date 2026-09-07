@@ -91,7 +91,7 @@ export default function ProjectCreate() {
         <Group label='项目描述'>
           <Textarea className='text-area' placeholder='项目范围、主要工序、投入设备等' value={desc} onInput={(e) => setDesc(e.detail.value)} maxlength={500} />
         </Group>
-        <View style={{ height: '30px' }} />
+        <View style={{ height: '40px' }} />
       </ScrollView>
 
       <View className='create-footer'>

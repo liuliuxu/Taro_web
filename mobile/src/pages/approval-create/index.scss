@@ -143,12 +143,14 @@
 
 .ac-submit {
   margin-top: 20px;
+  height: 92px;
+  border-radius: 46px;
   background: linear-gradient(135deg, #FF8A3D, #F2540E);
   color: #fff;
-  text-align: center;
-  padding: 24px 0;
-  border-radius: 16px;
   font-size: 30px;
-  font-weight: 600;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: 0 8px 20px rgba(242, 84, 14, 0.3);
 }

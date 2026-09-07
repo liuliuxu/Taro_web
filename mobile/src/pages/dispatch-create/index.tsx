@@ -132,7 +132,7 @@ export default function DispatchCreate() {
             </View>
           </Picker>
         </Group>
-        <View style={{ height: '30px' }} />
+        <View style={{ height: '40px' }} />
       </ScrollView>
 
       <View className='create-footer'>

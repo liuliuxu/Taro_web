@@ -129,7 +129,7 @@ export default function RentalCreate() {
         <Group label='备注'>
           <Textarea className='text-area' placeholder='结算方式、含司机与否、超时费率等' value={note} onInput={(e) => setNote(e.detail.value)} maxlength={300} />
         </Group>
-        <View style={{ height: '30px' }} />
+        <View style={{ height: '40px' }} />
       </ScrollView>
 
       <View className='create-footer'>

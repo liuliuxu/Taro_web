@@ -226,6 +226,34 @@
   font-size: 30px;
 }
 
+/* 自定义主题色 */
+.theme-colors {
+  display: flex;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.theme-color-dot {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  box-shadow: 0 3px 10px rgba(22, 40, 59, 0.18);
+  box-sizing: border-box;
+}
+
+.theme-color-dot.on {
+  border: 4px solid var(--ink);
+  transform: scale(1.12);
+}
+
+.theme-colors-tip {
+  display: block;
+  margin-top: 14px;
+  font-size: 22px;
+  color: var(--text-3);
+}
+
 .logout-btn {
   margin: 40px 24px 0;
   height: 92px;

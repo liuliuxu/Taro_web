@@ -131,7 +131,7 @@ export default function WorkOrderCreate() {
           <Textarea className='text-area' placeholder='请详细描述故障现象、发生时间、影响范围等' value={desc} onInput={(e) => setDesc(e.detail.value)} maxlength={500} />
         </View>
 
-        <View style={{ height: '30px' }} />
+        <View style={{ height: '40px' }} />
       </ScrollView>
 
       <View className='create-footer'>

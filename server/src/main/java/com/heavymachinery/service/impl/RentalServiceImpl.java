@@ -11,7 +11,9 @@ import com.heavymachinery.entity.User;
 import com.heavymachinery.repository.MachineryRepository;
 import com.heavymachinery.repository.RentalContractRepository;
 import com.heavymachinery.repository.UserRepository;
+import com.heavymachinery.service.OrgService;
 import com.heavymachinery.service.RentalService;
+import com.heavymachinery.util.OrgSpecs;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,13 +41,16 @@ public class RentalServiceImpl implements RentalService {
     private final RentalContractRepository rentalContractRepository;
     private final MachineryRepository machineryRepository;
     private final UserRepository userRepository;
+    private final OrgService orgService;
 
     public RentalServiceImpl(RentalContractRepository rentalContractRepository,
                              MachineryRepository machineryRepository,
-                             UserRepository userRepository) {
+                             UserRepository userRepository,
+                             OrgService orgService) {
         this.rentalContractRepository = rentalContractRepository;
         this.machineryRepository = machineryRepository;
         this.userRepository = userRepository;
+        this.orgService = orgService;
     }
 
     @Override
@@ -68,8 +73,10 @@ public class RentalServiceImpl implements RentalService {
         c.setEndDate(request.getEndDate());
         c.setNote(request.getNote());
         computeAmount(c);
-        userRepository.findById(createdByUserId).ifPresent(u ->
-                c.setCreatedByName(u.getNickname() != null ? u.getNickname() : u.getUsername()));
+        userRepository.findById(createdByUserId).ifPresent(u -> {
+                c.setCreatedByName(u.getNickname() != null ? u.getNickname() : u.getUsername());
+                c.setOrgId(u.getOrgId());
+        });
         c.setCreatedByUserId(createdByUserId);
 
         if ("available".equals(machinery.getStatus())) {
@@ -104,7 +111,8 @@ public class RentalServiceImpl implements RentalService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        Page<RentalContract> result = rentalContractRepository.findAll(spec, pageable);
+        Page<RentalContract> result = rentalContractRepository.findAll(
+                OrgSpecs.withOrg(spec, orgService.visibleOrgIds()), pageable);
         List<RentalVO> list = result.getContent().stream()
                 .map(RentalVO::from).collect(Collectors.toList());
         return new PageResult<>(list, result.getTotalElements(), page, pageSize);

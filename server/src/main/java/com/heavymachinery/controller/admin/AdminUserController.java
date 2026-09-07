@@ -7,6 +7,7 @@ import com.heavymachinery.dto.UserUpdateRequest;
 import com.heavymachinery.entity.User;
 import com.heavymachinery.repository.UserRepository;
 import com.heavymachinery.service.AuthService;
+import com.heavymachinery.service.OrgService;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,19 +27,24 @@ public class AdminUserController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
+    private final OrgService orgService;
 
     public AdminUserController(UserRepository userRepository,
                                PasswordEncoder passwordEncoder,
-                               AuthService authService) {
+                               AuthService authService,
+                               OrgService orgService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authService = authService;
+        this.orgService = orgService;
     }
 
     @GetMapping("/list")
     public ApiResponse<List<User>> list(@RequestParam(required = false) String keyword,
                                         @RequestParam(required = false) String role) {
+        List<Long> scope = orgService.visibleOrgIds();
         List<User> list = userRepository.findAll().stream()
+                .filter(u -> scope == null || u.getOrgId() == null || scope.contains(u.getOrgId()))
                 .filter(u -> role == null || role.isEmpty() || role.equals(u.getRole()))
                 .filter(u -> keyword == null || keyword.isEmpty()
                         || u.getUsername().contains(keyword)
@@ -64,6 +70,12 @@ public class AdminUserController {
         u.setPhone(request.getPhone());
         u.setEmail(request.getEmail());
         u.setRole(request.getRole());
+        Long orgId = request.getOrgId();
+        if (orgId == null) {
+            User current = authService.getCurrentUser();
+            if (current != null) orgId = current.getOrgId();
+        }
+        u.setOrgId(orgId);
         return ApiResponse.success("用户创建成功", userRepository.save(u));
     }
 
@@ -84,6 +96,7 @@ public class AdminUserController {
             }
             u.setRole(request.getRole());
         }
+        if (request.getOrgId() != null) u.setOrgId(request.getOrgId());
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
             u.setPassword(passwordEncoder.encode(request.getPassword()));
         }

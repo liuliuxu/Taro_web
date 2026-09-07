@@ -22,6 +22,9 @@ public class RentalContract {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** 所属机构（数据隔离） */
+    private Long orgId;
+
     @Column(nullable = false, unique = true, length = 40)
     private String contractNo;
 

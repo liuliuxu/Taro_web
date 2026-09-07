@@ -45,6 +45,9 @@ public class User {
     @Column(nullable = false, length = 20)
     private String role = "customer";
 
+    /** 所属机构；null 表示系统级（集团管理员） */
+    private Long orgId;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

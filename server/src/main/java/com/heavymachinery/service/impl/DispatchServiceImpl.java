@@ -12,6 +12,7 @@ import com.heavymachinery.repository.DispatchTaskRepository;
 import com.heavymachinery.repository.MachineryRepository;
 import com.heavymachinery.repository.ProjectRepository;
 import com.heavymachinery.repository.UserRepository;
+import com.heavymachinery.service.OrgService;
 import com.heavymachinery.service.DispatchService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,15 +32,18 @@ public class DispatchServiceImpl implements DispatchService {
     private final ProjectRepository projectRepository;
     private final MachineryRepository machineryRepository;
     private final UserRepository userRepository;
+    private final OrgService orgService;
 
     public DispatchServiceImpl(DispatchTaskRepository dispatchTaskRepository,
                                ProjectRepository projectRepository,
                                MachineryRepository machineryRepository,
-                               UserRepository userRepository) {
+                               UserRepository userRepository,
+                              OrgService orgService) {
         this.dispatchTaskRepository = dispatchTaskRepository;
         this.projectRepository = projectRepository;
         this.machineryRepository = machineryRepository;
         this.userRepository = userRepository;
+        this.orgService = orgService;
     }
 
     @Override
@@ -54,6 +58,7 @@ public class DispatchServiceImpl implements DispatchService {
         task.setDispatchNo(generateDispatchNo());
         task.setProjectId(project.getId());
         task.setProjectName(project.getName());
+        task.setOrgId(project.getOrgId());
         task.setMachineryId(machinery.getId());
         task.setMachineryName(machinery.getName());
         task.setMachineryModel(machinery.getModel());
@@ -91,6 +96,11 @@ public class DispatchServiceImpl implements DispatchService {
 
     @Override
     public List<DispatchTaskVO> listByProject(Long projectId) {
+        projectRepository.findById(projectId).ifPresent(p -> {
+            if (!orgService.visible(p.getOrgId())) {
+                throw new BusinessException(403, "无权访问该机构的数据");
+            }
+        });
         return dispatchTaskRepository.findByProjectIdOrderByCreatedAtDesc(projectId).stream()
                 .map(DispatchTaskVO::from).collect(Collectors.toList());
     }
@@ -104,13 +114,12 @@ public class DispatchServiceImpl implements DispatchService {
 
     @Override
     public List<DispatchTaskVO> listAll(String status) {
-        if (status != null && !status.isEmpty()) {
-            return dispatchTaskRepository.findAll().stream()
-                    .filter(t -> status.equals(t.getStatus()))
-                    .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
-                    .map(DispatchTaskVO::from).collect(Collectors.toList());
-        }
+        List<Long> scope = orgService.visibleOrgIds();
+        java.util.function.BiPredicate<DispatchTask, List<Long>> vis = (t, sc) ->
+                sc == null || t.getOrgId() == null || sc.contains(t.getOrgId());
         return dispatchTaskRepository.findAll().stream()
+                .filter(t -> status == null || status.isEmpty() || status.equals(t.getStatus()))
+                .filter(t -> vis.test(t, scope))
                 .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
                 .map(DispatchTaskVO::from).collect(Collectors.toList());
     }

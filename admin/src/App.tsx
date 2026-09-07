@@ -8,6 +8,15 @@ import WorkOrders from './pages/WorkOrders'
 import Users from './pages/Users'
 import Projects from './pages/Projects'
 import Rentals from './pages/Rentals'
+import Orgs from './pages/Orgs'
+import Suppliers from './pages/Suppliers'
+import Purchases from './pages/Purchases'
+import SpareParts from './pages/SpareParts'
+import Inspection from './pages/Inspection'
+import Announcements from './pages/Announcements'
+import Contracts from './pages/Contracts'
+import ApprovalConfig from './pages/ApprovalConfig'
+import ApprovalInstances from './pages/ApprovalInstances'
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
   const [token] = useState(() => localStorage.getItem('hm_token'))
@@ -35,6 +44,15 @@ export default function App() {
           <Route path='users' element={<Users />} />
           <Route path='projects' element={<Projects />} />
           <Route path='rentals' element={<Rentals />} />
+          <Route path='orgs' element={<Orgs />} />
+          <Route path='suppliers' element={<Suppliers />} />
+          <Route path='purchases' element={<Purchases />} />
+          <Route path='spare-parts' element={<SpareParts />} />
+          <Route path='inspection' element={<Inspection />} />
+          <Route path='announcements' element={<Announcements />} />
+          <Route path='contracts' element={<Contracts />} />
+          <Route path='approval/config' element={<ApprovalConfig />} />
+          <Route path='approval/instances' element={<ApprovalInstances />} />
         </Route>
         <Route path='*' element={<Navigate to='/' replace />} />
       </Routes>

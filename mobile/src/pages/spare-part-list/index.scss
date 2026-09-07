@@ -1,0 +1,92 @@
+.sp-page {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.sp-search {
+  display: flex;
+  gap: 16px;
+  padding: 20px 24px;
+  background: #fff;
+}
+
+.sp-input {
+  flex: 1;
+  background: var(--bg-2);
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 26px;
+}
+
+.sp-search-btn {
+  padding: 14px 28px;
+  background: #FF6B1A;
+  color: #fff;
+  border-radius: 12px;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.sp-scroll {
+  padding: 16px 24px 60px;
+  box-sizing: border-box;
+}
+
+.sp-empty {
+  padding: 100px 0;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 26px;
+}
+
+.sp-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 26px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-1);
+}
+
+.sp-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sp-name {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.sp-no {
+  font-size: 20px;
+  color: var(--text-3);
+  font-family: monospace;
+}
+
+.sp-stock {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0E9F6E;
+}
+
+.sp-stock.sp-low {
+  color: #EF4444;
+}
+
+.sp-meta {
+  display: block;
+  margin-top: 8px;
+  font-size: 23px;
+  color: var(--text-3);
+}
+
+.sp-info {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

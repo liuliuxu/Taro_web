@@ -59,7 +59,12 @@ export default function Profile() {
     { label: '新建工单', value: '发起报修或保养', action: () => Taro.navigateTo({ url: '/pages/workorder-create/index' }) },
     { label: '工程项目', value: '立项 / 进度 / 调度', action: () => Taro.navigateTo({ url: '/pages/project-list/index' }) },
     { label: '我的任务', value: '派发给我的调度任务', action: () => Taro.navigateTo({ url: '/pages/task-list/index' }) },
-    { label: '租赁管理', value: '租赁合同 / 登记归还', action: () => Taro.navigateTo({ url: '/pages/rental-list/index' }) }
+    { label: '租赁管理', value: '租赁合同 / 登记归还', action: () => Taro.navigateTo({ url: '/pages/rental-list/index' }) },
+    { label: '审批中心', value: '审批 / 待办 / 动态表单', action: () => Taro.navigateTo({ url: '/pages/approval-list/index' }) },
+    { label: '公告通知', value: '企业公告与通知', action: () => Taro.navigateTo({ url: '/pages/announcement-list/index' }) },
+    { label: '巡检保养', value: '我的巡检 / 保养任务', action: () => Taro.navigateTo({ url: '/pages/inspect-list/index' }) },
+    { label: '备件查询', value: '备件物料库存', action: () => Taro.navigateTo({ url: '/pages/spare-part-list/index' }) },
+    { label: '采购申请', value: '发起采购 / 查看进度', action: () => Taro.navigateTo({ url: '/pages/purchase-list/index' }) }
   ]
 
   return (

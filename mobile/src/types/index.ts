@@ -174,3 +174,136 @@ export interface RentalContract {
   returnAt?: string
   createdAt: string
 }
+
+export interface FormField {
+  key: string
+  label: string
+  type: 'input' | 'textarea' | 'number' | 'date' | 'select' | 'multiple' | 'upload' | 'tree'
+  required?: boolean
+  placeholder?: string
+  options?: { label: string; value: string }[]
+  optionSetCode?: string
+  treeData?: { title: string; value: string; children?: { title: string; value: string }[] }[]
+}
+
+export interface FormDefinition {
+  id: number
+  name: string
+  bizType: string
+  fieldsJson?: string
+  remark?: string
+  status?: string
+}
+
+export interface ProcessDefinition {
+  id: number
+  name: string
+  formId?: number
+  nodesJson?: string
+  remark?: string
+  status?: string
+}
+
+export interface OptionSet {
+  id: number
+  code: string
+  name: string
+  optionsJson?: string
+  status?: string
+}
+
+export interface ApprovalInstance {
+  id: number
+  approvalNo: string
+  processId?: number
+  formId?: number
+  bizType?: string
+  bizId?: number
+  title: string
+  status: 'pending' | 'approved' | 'rejected' | 'withdrawn'
+  applicantId?: number
+  applicantName?: string
+  orgId?: number | null
+  currentNodeIndex?: number
+  currentNodeName?: string
+  resultNote?: string
+  createdAt?: string
+  finishedAt?: string
+}
+
+export interface ApprovalTask {
+  id: number
+  instanceId: number
+  nodeIndex: number
+  nodeName: string
+  status: string
+  candidateIdsJson?: string
+  handledById?: number
+  handledByName?: string
+  comment?: string
+  handledAt?: string
+}
+
+export interface ApprovalDetail {
+  instance: ApprovalInstance
+  form?: FormDefinition
+  tasks?: ApprovalTask[]
+  formData?: Record<string, any>
+}
+
+export interface Announcement {
+  id: number
+  title: string
+  content?: string
+  type?: string
+  publisherName?: string
+  orgId?: number | null
+  status?: string
+  createdAt?: string
+}
+
+export interface SparePart {
+  id: number
+  partNo: string
+  name: string
+  category?: string
+  spec?: string
+  unit?: string
+  stockQty?: number
+  minStock?: number
+  price?: number
+  warehouse?: string
+  orgId?: number | null
+  remark?: string
+}
+
+export interface InspectionPlan {
+  id: number
+  machineryId?: number
+  machineryName?: string
+  type?: 'inspection' | 'maintenance'
+  content?: string
+  cycleDays?: number
+  lastDoneAt?: string
+  nextDueAt?: string
+  assigneeId?: number
+  assigneeName?: string
+  status?: string
+  remark?: string
+}
+
+export interface PurchaseOrder {
+  id: number
+  orderNo: string
+  supplierId?: number
+  supplierName?: string
+  itemName: string
+  quantity?: number
+  unit?: string
+  unitPrice?: number
+  totalAmount?: number
+  status?: string
+  applicantName?: string
+  remark?: string
+  createdAt?: string
+}

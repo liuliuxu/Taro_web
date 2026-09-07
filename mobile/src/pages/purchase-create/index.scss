@@ -1,0 +1,89 @@
+.pc-page {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.pc-scroll {
+  padding: 20px 24px 60px;
+  box-sizing: border-box;
+}
+
+.pc-field {
+  background: #fff;
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-1);
+}
+
+.pc-field-row {
+  display: flex;
+  gap: 16px;
+}
+
+.pc-field-row .pc-field {
+  flex: 1;
+}
+
+.pc-label {
+  display: block;
+  font-size: 24px;
+  color: var(--text-2);
+  margin-bottom: 12px;
+}
+
+.req {
+  color: #F2540E;
+  margin-left: 4px;
+}
+
+.pc-input {
+  font-size: 28px;
+  color: var(--text-1);
+}
+
+.pc-textarea {
+  width: 100%;
+  min-height: 120px;
+  font-size: 28px;
+  line-height: 1.6;
+}
+
+.pc-parts {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.pc-part {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.pc-part-name {
+  font-size: 26px;
+  color: var(--text-1);
+}
+
+.pc-part-meta {
+  font-size: 22px;
+  color: var(--text-3);
+}
+
+.pc-submit {
+  margin-top: 20px;
+  background: linear-gradient(135deg, #FF8A3D, #F2540E);
+  color: #fff;
+  text-align: center;
+  padding: 24px 0;
+  border-radius: 16px;
+  font-size: 30px;
+  font-weight: 600;
+  box-shadow: 0 8px 20px rgba(242, 84, 14, 0.3);
+}
+
+.pc-disabled {
+  opacity: 0.6;
+}

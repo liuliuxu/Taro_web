@@ -70,6 +70,8 @@ public class SecurityConfig {
                         // 公开接口：认证、注册、设备列表/详情
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/machinery/**").permitAll()
+                        // 上传文件访问
+                        .requestMatchers("/files/**").permitAll()
                         // 健康检查与数据库控制台（开发用）
                         .requestMatchers("/actuator/**", "/h2-console/**", "/error").permitAll()
                         // 管理端接口需要 ADMIN 角色

@@ -1,203 +1,134 @@
 import { useState, useEffect } from 'react'
-import { get, post, put, del } from '../api'
-import type { User } from '../types'
+import { Table, Button, Modal, Form, Input, Select, Space, message, Popconfirm, Tag } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
+import type { ColumnsType } from 'antd/es/table'
+import { get, post, put, del, qs } from '../api'
+import type { Org, User } from '../types'
 import { roleLabel } from '../meta'
 
-const ROLES = ['admin', 'manager', 'operator']
-
-interface FormState {
-  username: string
-  password: string
-  nickname: string
-  phone: string
-  email: string
-  role: string
-}
-
-const EMPTY: FormState = { username: '', password: '', nickname: '', phone: '', email: '', role: 'operator' }
+const ROLES = ['admin', 'manager', 'operator', 'customer']
 
 export default function UsersPage() {
   const [list, setList] = useState<User[]>([])
+  const [orgs, setOrgs] = useState<Org[]>([])
   const [keyword, setKeyword] = useState('')
   const [role, setRole] = useState('')
-  const [form, setForm] = useState<FormState>(EMPTY)
+  const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
-  const [showModal, setShowModal] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [err, setErr] = useState('')
-
-  useEffect(() => { load() }, [role])
+  const [form] = Form.useForm()
+  const me = JSON.parse(localStorage.getItem('hm_user') || '{}') as User
 
   async function load() {
     try {
-      const data = await get<User[]>('/admin/users/list?keyword=' + encodeURIComponent(keyword || '') + (role ? `&role=${role}` : ''))
+      const data = await get<User[]>('/admin/users/list' + qs({ keyword, role }))
       setList(data)
     } catch (e: any) {
-      alert(e?.message || '加载失败')
+      message.error(e?.message || '加载失败')
     }
   }
-
-  const me = JSON.parse(localStorage.getItem('hm_user') || '{}') as User
+  useEffect(() => { load() }, [role])
+  useEffect(() => {
+    get<Org[]>('/admin/orgs/list').then(setOrgs).catch(() => {})
+  }, [])
 
   function openCreate() {
     setEditing(null)
-    setForm(EMPTY)
-    setErr('')
-    setShowModal(true)
+    form.resetFields()
+    form.setFieldsValue({ role: 'operator' })
+    setModal(true)
   }
-
   function openEdit(u: User) {
     setEditing(u)
-    setForm({ username: u.username, password: '', nickname: u.nickname || '', phone: u.phone || '', email: u.email || '', role: u.role })
-    setErr('')
-    setShowModal(true)
+    form.setFieldsValue({ ...u, password: '' })
+    setModal(true)
   }
-
   async function save() {
-    if (!form.username.trim()) { setErr('请填写用户名'); return }
-    if (!editing && !form.password) { setErr('请填写初始密码'); return }
-    setSaving(true)
+    const values = await form.validateFields()
     try {
       if (editing) {
         const body: Record<string, unknown> = {
-          nickname: form.nickname || undefined,
-          phone: form.phone || undefined,
-          email: form.email || undefined,
-          role: form.role,
-          password: form.password || undefined
+          nickname: values.nickname || undefined,
+          phone: values.phone || undefined,
+          email: values.email || undefined,
+          role: values.role,
+          orgId: values.orgId || undefined,
+          password: values.password || undefined
         }
         await put(`/admin/users/${editing.id}`, body)
       } else {
-        await post('/admin/users', {
-          username: form.username.trim(),
-          password: form.password,
-          nickname: form.nickname || undefined,
-          phone: form.phone || undefined,
-          email: form.email || undefined,
-          role: form.role
-        })
+        await post('/admin/users', { ...values, password: values.password })
       }
-      setShowModal(false)
+      message.success('保存成功')
+      setModal(false)
       load()
     } catch (e: any) {
-      setErr(e?.message || '保存失败')
-    } finally {
-      setSaving(false)
+      message.error(e?.message || '保存失败')
     }
   }
-
   async function remove(u: User) {
-    if (u.role === 'admin') { alert('不能删除管理员账号'); return }
-    if (!window.confirm(`确认删除用户「${u.nickname || u.username}」？`)) return
-    try {
-      await del(`/admin/users/${u.id}`)
-      load()
-    } catch (e: any) {
-      alert(e?.message || '删除失败')
-    }
+    if (u.role === 'admin') { message.warning('不能删除管理员账号'); return }
+    await del(`/admin/users/${u.id}`)
+    message.success('已删除')
+    load()
   }
 
-  function set<K extends keyof FormState>(k: K, v: FormState[K]) {
-    setForm((f) => ({ ...f, [k]: v }))
-  }
+  const columns: ColumnsType<User> = [
+    { title: '用户名', dataIndex: 'username', render: (v) => <b>{v}</b> },
+    { title: '姓名', dataIndex: 'nickname' },
+    { title: '角色', dataIndex: 'role', render: (r) => <Tag color={r === 'admin' ? 'red' : r === 'manager' ? 'blue' : 'default'}>{roleLabel[r] || r}</Tag> },
+    { title: '手机号', dataIndex: 'phone' },
+    { title: '邮箱', dataIndex: 'email' },
+    { title: '机构', dataIndex: 'orgId', render: (orgId) => {
+        const org = orgs.find((o) => o.id === orgId)
+        return org ? org.name : (orgId == null ? <Tag>集团</Tag> : '—')
+      } },
+    { title: '创建时间', dataIndex: 'createdAt', render: (d) => d?.slice(0, 10) || '—' },
+    {
+      title: '操作', width: 130,
+      render: (_, u) => (
+        <Space>
+          <Button type='link' size='small' onClick={() => openEdit(u)}>编辑</Button>
+          {u.id !== me.id && u.role !== 'admin' && (
+            <Popconfirm title='确认删除？' onConfirm={() => remove(u)}>
+              <Button type='link' size='small' danger>删除</Button>
+            </Popconfirm>
+          )}
+        </Space>
+      )
+    }
+  ]
 
   return (
     <div>
-      <div className='page-card'>
-        <div className='toolbar'>
-          <input className='search-input' placeholder='搜索用户名/姓名/手机号' value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') load() }} />
-          <select className='filter-select' value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value=''>全部角色</option>
-            <option value='admin'>管理员</option>
-            <option value='manager'>设备负责人</option>
-            <option value='operator'>一线作业人员</option>
-          </select>
-          <button className='toolbar-btn secondary' onClick={load}>查询</button>
-          <div className='spacer' />
-          <span style={{ color: 'var(--text-3)' }}>共 {list.length} 个账号</span>
-          <button className='toolbar-btn' onClick={openCreate}>+ 新增用户</button>
-        </div>
-      </div>
-
-      <div className='page-card'>
-        <table className='table'>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>用户名</th>
-              <th>姓名</th>
-              <th>角色</th>
-              <th>手机号</th>
-              <th>邮箱</th>
-              <th>创建时间</th>
-              <th style={{ width: 140 }}>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {list.map((u) => (
-              <tr key={u.id}>
-                <td>{u.id}</td>
-                <td style={{ fontWeight: 600 }}>{u.username}</td>
-                <td>{u.nickname || '—'}</td>
-                <td>{roleLabel[u.role] || u.role}</td>
-                <td>{u.phone || '—'}</td>
-                <td>{u.email || '—'}</td>
-                <td style={{ fontSize: 12, color: 'var(--text-3)' }}>{u.createdAt?.slice(0, 10) || '—'}</td>
-                <td>
-                  <button className='link-btn' onClick={() => openEdit(u)}>编辑</button>
-                  {u.id !== me.id && u.role !== 'admin' && (
-                    <button className='link-btn danger' onClick={() => remove(u)}>删除</button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {list.length === 0 && <div className='empty'>暂无用户</div>}
-      </div>
-
-      {showModal && (
-        <div className='modal-mask' onClick={() => setShowModal(false)}>
-          <div className='modal' onClick={(e) => e.stopPropagation()}>
-            <div className='modal-title'>{editing ? `编辑用户 · ${editing.username}` : '新增用户'}</div>
-            {err && <div className='warn-banner'>{err}</div>}
-            <div className='form-grid'>
-              <div className='form-field'>
-                <label>用户名 <span className='req'>*</span></label>
-                <input value={form.username} onChange={(e) => set('username', e.target.value)} disabled={!!editing} placeholder='登录账号' />
-              </div>
-              <div className='form-field'>
-                <label>{editing ? '重置密码（留空不变）' : '初始密码'} <span className='req'>{editing ? '' : '*'}</span></label>
-                <input type='password' value={form.password} onChange={(e) => set('password', e.target.value)} placeholder={editing ? '留空则不修改' : '设置登录密码'} />
-              </div>
-              <div className='form-field'>
-                <label>姓名</label>
-                <input value={form.nickname} onChange={(e) => set('nickname', e.target.value)} />
-              </div>
-              <div className='form-field'>
-                <label>角色</label>
-                <select value={form.role} onChange={(e) => set('role', e.target.value)}>
-                  {ROLES.map((r) => <option key={r} value={r}>{roleLabel[r]}</option>)}
-                </select>
-              </div>
-              <div className='form-field'>
-                <label>手机号</label>
-                <input value={form.phone} onChange={(e) => set('phone', e.target.value)} />
-              </div>
-              <div className='form-field'>
-                <label>邮箱</label>
-                <input value={form.email} onChange={(e) => set('email', e.target.value)} />
-              </div>
-            </div>
-            <div className='modal-actions'>
-              <button className='btn btn-cancel' onClick={() => setShowModal(false)}>取消</button>
-              <button className='btn btn-ok' disabled={saving} onClick={save}>{saving ? '保存中...' : '保存'}</button>
-            </div>
+      <Space style={{ marginBottom: 12 }} wrap>
+        <Input.Search placeholder='搜索用户名/姓名/手机号' allowClear style={{ width: 220 }} onSearch={(v) => { setKeyword(v); load() }} />
+        <Select placeholder='全部角色' allowClear style={{ width: 140 }}
+          options={ROLES.map((r) => ({ value: r, label: roleLabel[r] || r }))}
+          onChange={(v) => setRole(v || '')} />
+        <Button type='primary' icon={<PlusOutlined />} onClick={openCreate}>新增用户</Button>
+      </Space>
+      <Table rowKey='id' dataSource={list} columns={columns} size='small' pagination={false} />
+      <Modal title={editing ? `编辑用户 · ${editing.username}` : '新增用户'} open={modal} onOk={save} onCancel={() => setModal(false)} destroyOnClose>
+        <Form form={form} layout='vertical'>
+          <Form.Item name='username' label='用户名' rules={[{ required: true, message: '请填写用户名' }]}>
+            <Input disabled={!!editing} />
+          </Form.Item>
+          <Form.Item name='password' label={editing ? '重置密码（留空不变）' : '初始密码'} rules={editing ? [] : [{ required: true, message: '请填写初始密码' }]}>
+            <Input.Password placeholder={editing ? '留空则不修改' : '设置登录密码'} />
+          </Form.Item>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <Form.Item name='nickname' label='姓名'><Input /></Form.Item>
+            <Form.Item name='role' label='角色' rules={[{ required: true }]}>
+              <Select options={ROLES.map((r) => ({ value: r, label: roleLabel[r] || r }))} />
+            </Form.Item>
+            <Form.Item name='orgId' label='所属机构'>
+              <Select allowClear placeholder='默认同当前机构' options={orgs.map((o) => ({ value: o.id, label: o.name }))} />
+            </Form.Item>
+            <Form.Item name='phone' label='手机号'><Input /></Form.Item>
+            <Form.Item name='email' label='邮箱'><Input /></Form.Item>
           </div>
-        </div>
-      )}
+        </Form>
+      </Modal>
     </div>
   )
 }

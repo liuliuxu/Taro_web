@@ -6,7 +6,10 @@ import com.heavymachinery.dto.ProjectCreateRequest;
 import com.heavymachinery.dto.ProjectVO;
 import com.heavymachinery.entity.Project;
 import com.heavymachinery.repository.ProjectRepository;
+import com.heavymachinery.service.AuthService;
+import com.heavymachinery.service.OrgService;
 import com.heavymachinery.service.ProjectService;
+import com.heavymachinery.util.OrgSpecs;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,15 +30,24 @@ import java.util.stream.Collectors;
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final OrgService orgService;
+    private final AuthService authService;
 
-    public ProjectServiceImpl(ProjectRepository projectRepository) {
+    public ProjectServiceImpl(ProjectRepository projectRepository,
+                              OrgService orgService,
+                              AuthService authService) {
         this.projectRepository = projectRepository;
+        this.orgService = orgService;
+        this.authService = authService;
     }
 
     @Override
     @Transactional
     public ProjectVO create(ProjectCreateRequest request) {
         Project p = new Project();
+        if (authService.getCurrentUser() != null) {
+            p.setOrgId(authService.getCurrentUser().getOrgId());
+        }
         apply(p, request);
         p.setProjectNo(generateProjectNo());
         return ProjectVO.from(projectRepository.save(p));
@@ -88,7 +100,7 @@ public class ProjectServiceImpl implements ProjectService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        Page<Project> result = projectRepository.findAll(spec, pageable);
+        Page<Project> result = projectRepository.findAll(OrgSpecs.withOrg(spec, orgService.visibleOrgIds()), pageable);
         List<ProjectVO> list = result.getContent().stream()
                 .map(ProjectVO::from).collect(Collectors.toList());
         return new PageResult<>(list, result.getTotalElements(), page, pageSize);

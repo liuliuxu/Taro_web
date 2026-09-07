@@ -22,4 +22,7 @@ public class UserCreateRequest {
     /** admin, manager, operator, customer */
     @NotBlank
     private String role;
+
+    /** 所属机构；为空时默认为当前操作人机构 */
+    private Long orgId;
 }

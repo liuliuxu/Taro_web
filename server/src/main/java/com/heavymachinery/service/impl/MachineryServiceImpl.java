@@ -5,8 +5,12 @@ import com.heavymachinery.common.PageResult;
 import com.heavymachinery.dto.MachineryRequest;
 import com.heavymachinery.dto.MachineryVO;
 import com.heavymachinery.entity.Machinery;
+import com.heavymachinery.entity.User;
 import com.heavymachinery.repository.MachineryRepository;
+import com.heavymachinery.service.AuthService;
 import com.heavymachinery.service.MachineryService;
+import com.heavymachinery.service.OrgService;
+import com.heavymachinery.util.OrgSpecs;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,9 +28,15 @@ import java.util.stream.Collectors;
 public class MachineryServiceImpl implements MachineryService {
 
     private final MachineryRepository machineryRepository;
+    private final OrgService orgService;
+    private final AuthService authService;
 
-    public MachineryServiceImpl(MachineryRepository machineryRepository) {
+    public MachineryServiceImpl(MachineryRepository machineryRepository,
+                                OrgService orgService,
+                                AuthService authService) {
         this.machineryRepository = machineryRepository;
+        this.orgService = orgService;
+        this.authService = authService;
     }
 
     @Override
@@ -60,7 +70,8 @@ public class MachineryServiceImpl implements MachineryService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        Page<Machinery> result = machineryRepository.findAll(spec, pageable);
+        Page<Machinery> result = machineryRepository.findAll(
+                OrgSpecs.withOrg(spec, orgService.visibleOrgIds()), pageable);
         List<MachineryVO> list = result.getContent().stream()
                 .map(MachineryVO::from)
                 .collect(Collectors.toList());
@@ -71,6 +82,9 @@ public class MachineryServiceImpl implements MachineryService {
     public MachineryVO getDetail(Long id) {
         Machinery machinery = machineryRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(404, "设备不存在"));
+        if (!orgService.visible(machinery.getOrgId())) {
+            throw new BusinessException(403, "无权访问该机构的数据");
+        }
         return MachineryVO.from(machinery);
     }
 
@@ -92,6 +106,8 @@ public class MachineryServiceImpl implements MachineryService {
     @Transactional
     public MachineryVO create(MachineryRequest request) {
         Machinery m = new Machinery();
+        User current = authService.getCurrentUser();
+        if (current != null) m.setOrgId(current.getOrgId());
         apply(m, request);
         return MachineryVO.from(machineryRepository.save(m));
     }

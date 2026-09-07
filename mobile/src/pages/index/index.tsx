@@ -133,6 +133,26 @@ export default function Index() {
             <View className='quick-icon qi-rental'>租</View>
             <Text className='quick-text'>租赁管理</Text>
           </View>
+          <View className='quick-item' hoverClass='quick-hover' onClick={() => requireLogin() && goTo('/pages/approval-list/index')}>
+            <View className='quick-icon qi-approval'>审</View>
+            <Text className='quick-text'>审批中心</Text>
+          </View>
+          <View className='quick-item' hoverClass='quick-hover' onClick={() => requireLogin() && goTo('/pages/announcement-list/index')}>
+            <View className='quick-icon qi-announce'>告</View>
+            <Text className='quick-text'>公告通知</Text>
+          </View>
+          <View className='quick-item' hoverClass='quick-hover' onClick={() => requireLogin() && goTo('/pages/inspect-list/index')}>
+            <View className='quick-icon qi-inspect'>检</View>
+            <Text className='quick-text'>巡检保养</Text>
+          </View>
+          <View className='quick-item' hoverClass='quick-hover' onClick={() => requireLogin() && goTo('/pages/spare-part-list/index')}>
+            <View className='quick-icon qi-spare'>件</View>
+            <Text className='quick-text'>备件查询</Text>
+          </View>
+          <View className='quick-item' hoverClass='quick-hover' onClick={() => requireLogin() && goTo('/pages/purchase-list/index')}>
+            <View className='quick-icon qi-purchase'>购</View>
+            <Text className='quick-text'>采购申请</Text>
+          </View>
         </View>
       </View>
 

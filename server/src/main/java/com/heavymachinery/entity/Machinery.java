@@ -20,6 +20,9 @@ public class Machinery {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** 所属机构（数据隔离） */
+    private Long orgId;
+
     @Column(nullable = false, length = 100)
     private String name;
 

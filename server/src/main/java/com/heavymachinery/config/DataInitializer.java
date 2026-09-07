@@ -1,15 +1,29 @@
 package com.heavymachinery.config;
 
 import com.heavymachinery.entity.DispatchTask;
+import com.heavymachinery.entity.Announcement;
+import com.heavymachinery.entity.FormDefinition;
 import com.heavymachinery.entity.Machinery;
+import com.heavymachinery.entity.OptionSet;
+import com.heavymachinery.entity.Org;
+import com.heavymachinery.entity.ProcessDefinition;
 import com.heavymachinery.entity.Project;
 import com.heavymachinery.entity.RentalContract;
+import com.heavymachinery.entity.SparePart;
+import com.heavymachinery.entity.Supplier;
 import com.heavymachinery.entity.User;
 import com.heavymachinery.entity.WorkOrder;
+import com.heavymachinery.repository.AnnouncementRepository;
 import com.heavymachinery.repository.DispatchTaskRepository;
+import com.heavymachinery.repository.FormDefinitionRepository;
 import com.heavymachinery.repository.MachineryRepository;
+import com.heavymachinery.repository.OptionSetRepository;
+import com.heavymachinery.repository.OrgRepository;
+import com.heavymachinery.repository.ProcessDefinitionRepository;
 import com.heavymachinery.repository.ProjectRepository;
 import com.heavymachinery.repository.RentalContractRepository;
+import com.heavymachinery.repository.SparePartRepository;
+import com.heavymachinery.repository.SupplierRepository;
 import com.heavymachinery.repository.UserRepository;
 import com.heavymachinery.repository.WorkOrderRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +51,13 @@ public class DataInitializer implements CommandLineRunner {
     private final ProjectRepository projectRepository;
     private final DispatchTaskRepository dispatchTaskRepository;
     private final RentalContractRepository rentalContractRepository;
+    private final OrgRepository orgRepository;
+    private final OptionSetRepository optionSetRepository;
+    private final FormDefinitionRepository formDefinitionRepository;
+    private final ProcessDefinitionRepository processDefinitionRepository;
+    private final AnnouncementRepository announcementRepository;
+    private final SupplierRepository supplierRepository;
+    private final SparePartRepository sparePartRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UserRepository userRepository,
@@ -45,6 +66,13 @@ public class DataInitializer implements CommandLineRunner {
                            ProjectRepository projectRepository,
                            DispatchTaskRepository dispatchTaskRepository,
                            RentalContractRepository rentalContractRepository,
+                           OrgRepository orgRepository,
+                           OptionSetRepository optionSetRepository,
+                           FormDefinitionRepository formDefinitionRepository,
+                           ProcessDefinitionRepository processDefinitionRepository,
+                           AnnouncementRepository announcementRepository,
+                           SupplierRepository supplierRepository,
+                           SparePartRepository sparePartRepository,
                            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.machineryRepository = machineryRepository;
@@ -52,37 +80,77 @@ public class DataInitializer implements CommandLineRunner {
         this.projectRepository = projectRepository;
         this.dispatchTaskRepository = dispatchTaskRepository;
         this.rentalContractRepository = rentalContractRepository;
+        this.orgRepository = orgRepository;
+        this.optionSetRepository = optionSetRepository;
+        this.formDefinitionRepository = formDefinitionRepository;
+        this.processDefinitionRepository = processDefinitionRepository;
+        this.announcementRepository = announcementRepository;
+        this.supplierRepository = supplierRepository;
+        this.sparePartRepository = sparePartRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional
     public void run(String... args) {
-        initUsers();
+        Long rootOrgId = ensureRootOrg();
+        initUsers(rootOrgId);
         if (machineryRepository.count() == 0) {
-            initMachinery();
+            initMachinery(rootOrgId);
         }
         if (workOrderRepository.count() == 0) {
-            initWorkOrders();
+            initWorkOrders(rootOrgId);
         }
         if (projectRepository.count() == 0) {
-            initProjects();
+            initProjects(rootOrgId);
         }
         if (rentalContractRepository.count() == 0) {
-            initRentals();
+            initRentals(rootOrgId);
+        }
+        initApprovalConfig();
+        if (announcementRepository.count() == 0) {
+            initAnnouncements(rootOrgId);
+        }
+        if (supplierRepository.count() == 0) {
+            initSuppliers(rootOrgId);
+        }
+        if (sparePartRepository.count() == 0) {
+            initSpareParts(rootOrgId);
         }
     }
 
-    private void initUsers() {
-        createUserIfMissing("admin", "admin123", "系统管理员", "13800000000", "admin@heavymachinery.com", "admin");
-        createUserIfMissing("manager", "manager123", "设备负责人", "13611112222", null, "manager");
-        createUserIfMissing("operator", "operator123", "一线维修工", "13533334444", null, "operator");
+    private Long ensureRootOrg() {
+        Org root = orgRepository.findByCode("ORG_ROOT").orElse(null);
+        if (root == null) {
+            root = new Org();
+            root.setCode("ORG_ROOT");
+            root.setName("重工机械集团");
+            root.setParentId(null);
+            root.setPath("/");
+            root.setOrgLevel(0);
+            root.setStatus("enabled");
+            root = orgRepository.save(root);
+            log.info("已初始化根机构：重工机械集团");
+        }
+        return root.getId();
+    }
+
+    private void initUsers(Long rootOrgId) {
+        createUserIfMissing("admin", "admin123", "系统管理员", "13800000000", "admin@heavymachinery.com", "admin", null);
+        createUserIfMissing("manager", "manager123", "设备负责人", "13611112222", null, "manager", rootOrgId);
+        createUserIfMissing("operator", "operator123", "一线维修工", "13533334444", null, "operator", rootOrgId);
         log.info("已初始化用户: admin/admin123, manager/manager123, operator/operator123");
     }
 
     private void createUserIfMissing(String username, String rawPassword, String nickname,
-                                     String phone, String email, String role) {
+                                     String phone, String email, String role, Long orgId) {
         if (userRepository.findByUsername(username).isPresent()) {
+            userRepository.findByUsername(username).ifPresent(u -> {
+                if (u.getOrgId() == null && orgId != null) {
+                    u.setOrgId(orgId);
+                    userRepository.save(u);
+                }
+            });
             return;
         }
         User u = new User();
@@ -92,10 +160,11 @@ public class DataInitializer implements CommandLineRunner {
         u.setPhone(phone);
         u.setEmail(email);
         u.setRole(role);
+        u.setOrgId(orgId);
         userRepository.save(u);
     }
 
-    private void initWorkOrders() {
+    private void initWorkOrders(Long rootOrgId) {
         Machinery m1 = machineryRepository.findAll().stream()
                 .filter(m -> "液压挖掘机".equals(m.getName())).findFirst().orElse(null);
         Machinery m2 = machineryRepository.findAll().stream()
@@ -129,6 +198,7 @@ public class DataInitializer implements CommandLineRunner {
         wo.setWorkNo("WO" + System.currentTimeMillis() + ThreadLocalRandom.current().nextInt(1000, 9999));
         wo.setMachineryId(m.getId());
         wo.setMachineryName(m.getName());
+        wo.setOrgId(m.getOrgId());
         wo.setTitle(title);
         wo.setType("维修".equals(type) ? "repair" : "maintain");
         wo.setPriority(priority);
@@ -153,7 +223,10 @@ public class DataInitializer implements CommandLineRunner {
         workOrderRepository.save(wo);
     }
 
-    private void initMachinery() {
+    private Long currentRootOrgId;
+
+    private void initMachinery(Long rootOrgId) {
+        currentRootOrgId = rootOrgId;
         save(build("液压挖掘机", "挖掘机", "卡特彼勒",
                 "大型履带式液压挖掘机，适用于土方开挖、矿山剥离等重载作业。采用先进液压系统，操作精准，耐用可靠，配备智能监控系统，燃油经济性出色。",
                 "98.00", 5, "31500 kg", "110 kW", "9.5m x 3.2m x 3.1m", "1.6 m³", true, "CAT 320"));
@@ -184,6 +257,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void save(Machinery m) {
+        m.setOrgId(currentRootOrgId);
         machineryRepository.save(m);
     }
 
@@ -207,7 +281,7 @@ public class DataInitializer implements CommandLineRunner {
         return m;
     }
 
-    private void initProjects() {
+    private void initProjects(Long rootOrgId) {
         User manager = userRepository.findByUsername("manager").orElse(null);
         User operator = userRepository.findByUsername("operator").orElse(null);
         String managerName = manager != null ? manager.getNickname() : "设备负责人";
@@ -224,6 +298,7 @@ public class DataInitializer implements CommandLineRunner {
         p1.setBudget(new BigDecimal("680.00"));
         p1.setManagerName(managerName);
         p1.setDescription("路基土方开挖、回填碾压及道路面层施工，涉及挖掘机、装载机、压路机等设备。");
+        p1.setOrgId(rootOrgId);
         p1.setStatus("active");
         projectRepository.save(p1);
 
@@ -238,6 +313,7 @@ public class DataInitializer implements CommandLineRunner {
         p2.setBudget(new BigDecimal("1250.00"));
         p2.setManagerName(managerName);
         p2.setDescription("矿山剥离与矿石运输，投入挖掘机、破碎锤、自卸车等大型设备。");
+        p2.setOrgId(rootOrgId);
         p2.setStatus("created");
         projectRepository.save(p2);
 
@@ -266,7 +342,7 @@ public class DataInitializer implements CommandLineRunner {
         log.info("已初始化示例工程与调度任务");
     }
 
-    private void initRentals() {
+    private void initRentals(Long rootOrgId) {
         User admin = userRepository.findByUsername("admin").orElse(null);
 
         Machinery m4 = machineryRepository.findAll().stream()
@@ -292,10 +368,147 @@ public class DataInitializer implements CommandLineRunner {
                 c1.setCreatedByUserId(admin.getId());
                 c1.setCreatedByName(admin.getNickname());
             }
+            c1.setOrgId(rootOrgId);
             rentalContractRepository.save(c1);
             m4.setStatus("rented");
             machineryRepository.save(m4);
         }
         log.info("已初始化示例租赁合同");
+    }
+
+    /** 审批配置种子：选项集 / 动态表单（含全部字段类型）/ 已发布流程 */
+    private void initApprovalConfig() {
+        OptionSet dept = optionSetRepository.findByCode("DEPT").orElse(null);
+        if (dept == null) {
+            dept = new OptionSet();
+            dept.setCode("DEPT");
+            dept.setName("部门选项");
+            dept.setOptionsJson("[{\"label\":\"设备部\",\"value\":\"equipment\"},{\"label\":\"工程部\",\"value\":\"engineering\"},{\"label\":\"采购部\",\"value\":\"purchase\"}]");
+            dept.setStatus("enabled");
+            optionSetRepository.save(dept);
+        }
+
+        if (formDefinitionRepository.count() == 0) {
+            FormDefinition commonForm = new FormDefinition();
+            commonForm.setName("通用申请单");
+            commonForm.setBizType("common");
+            commonForm.setStatus("enabled");
+            commonForm.setFieldsJson("["
+                    + "{\"key\":\"title\",\"label\":\"申请标题\",\"type\":\"input\",\"required\":true,\"placeholder\":\"请输入申请标题\"},"
+                    + "{\"key\":\"dept\",\"label\":\"所属部门\",\"type\":\"select\",\"required\":true,\"optionsFrom\":\"optionSet\",\"optionSetCode\":\"DEPT\"},"
+                    + "{\"key\":\"amount\",\"label\":\"申请金额\",\"type\":\"number\",\"required\":true,\"placeholder\":\"元\"},"
+                    + "{\"key\":\"reason\",\"label\":\"申请事由\",\"type\":\"textarea\",\"required\":true},"
+                    + "{\"key\":\"tags\",\"label\":\"标签\",\"type\":\"multiple\",\"options\":[{\"label\":\"紧急\",\"value\":\"urgent\"},{\"label\":\"常规\",\"value\":\"normal\"},{\"label\":\"重要\",\"value\":\"important\"}]},"
+                    + "{\"key\":\"receipt\",\"label\":\"附件\",\"type\":\"upload\"},"
+                    + "{\"key\":\"category\",\"label\":\"申请类别\",\"type\":\"tree\",\"treeData\":[{\"title\":\"行政类\",\"value\":\"admin\",\"children\":[{\"title\":\"办公用品\",\"value\":\"office\"},{\"title\":\"差旅\",\"value\":\"travel\"}]},{\"title\":\"业务类\",\"value\":\"biz\",\"children\":[{\"title\":\"采购\",\"value\":\"purchase\"},{\"title\":\"维修\",\"value\":\"repair\"}]}]}"
+                    + "]");
+            commonForm = formDefinitionRepository.save(commonForm);
+
+            FormDefinition purchaseForm = new FormDefinition();
+            purchaseForm.setName("采购申请单");
+            purchaseForm.setBizType("purchase");
+            purchaseForm.setStatus("enabled");
+            purchaseForm.setFieldsJson("["
+                    + "{\"key\":\"itemName\",\"label\":\"物料名称\",\"type\":\"input\",\"required\":true},"
+                    + "{\"key\":\"quantity\",\"label\":\"数量\",\"type\":\"number\",\"required\":true},"
+                    + "{\"key\":\"supplier\",\"label\":\"供应商\",\"type\":\"input\"},"
+                    + "{\"key\":\"note\",\"label\":\"采购说明\",\"type\":\"textarea\"}"
+                    + "]");
+            FormDefinition purchase = formDefinitionRepository.save(purchaseForm);
+
+            FormDefinition expenseForm = new FormDefinition();
+            expenseForm.setName("维修费用报销单");
+            expenseForm.setBizType("workorder_cost");
+            expenseForm.setStatus("enabled");
+            expenseForm.setFieldsJson("["
+                    + "{\"key\":\"workOrderNo\",\"label\":\"工单号\",\"type\":\"input\",\"required\":true},"
+                    + "{\"key\":\"cost\",\"label\":\"报销金额\",\"type\":\"number\",\"required\":true},"
+                    + "{\"key\":\"memo\",\"label\":\"费用说明\",\"type\":\"textarea\"}"
+                    + "]");
+            formDefinitionRepository.save(expenseForm);
+
+            if (processDefinitionRepository.count() == 0) {
+                ProcessDefinition commonProcess = new ProcessDefinition();
+                commonProcess.setName("通用申请审批");
+                commonProcess.setFormId(commonForm.getId());
+                commonProcess.setStatus("published");
+                commonProcess.setNodesJson("[{\"index\":0,\"name\":\"部门主管审批\",\"approverType\":\"role\",\"approverValue\":\"manager\"},{\"index\":1,\"name\":\"系统管理员审批\",\"approverType\":\"role\",\"approverValue\":\"admin\"}]");
+                processDefinitionRepository.save(commonProcess);
+
+                ProcessDefinition purchaseProcess = new ProcessDefinition();
+                purchaseProcess.setName("采购申请审批");
+                purchaseProcess.setFormId(purchase.getId());
+                purchaseProcess.setStatus("published");
+                purchaseProcess.setNodesJson("[{\"index\":0,\"name\":\"部门主管审批\",\"approverType\":\"role\",\"approverValue\":\"manager\"},{\"index\":1,\"name\":\"设备负责人复核\",\"approverType\":\"user\",\"approverValue\":\"2\"}]");
+                processDefinitionRepository.save(purchaseProcess);
+            }
+            log.info("已初始化审批配置：表单/流程");
+        }
+    }
+
+    private void initAnnouncements(Long rootOrgId) {
+        User admin = userRepository.findByUsername("admin").orElse(null);
+        saveAnnouncement("新系统上线使用指南", "欢迎使用重工机械一体化管理平台，已开通设备管理、工程派单、租赁、审批、采购与备件库存等模块。", "notice", admin, rootOrgId);
+        saveAnnouncement("关于开展设备安全巡检的通知", "请各分公司按巡检计划完成本月设备安全巡检，并于月底前提交巡检结果。", "system", admin, rootOrgId);
+        log.info("已初始化公告");
+    }
+
+    private void saveAnnouncement(String title, String content, String type, User admin, Long rootOrgId) {
+        Announcement a = new Announcement();
+        a.setTitle(title);
+        a.setContent(content);
+        a.setType(type);
+        a.setStatus("published");
+        a.setOrgId(rootOrgId);
+        if (admin != null) {
+            a.setPublisherId(admin.getId());
+            a.setPublisherName(admin.getNickname());
+        }
+        announcementRepository.save(a);
+    }
+
+    private void initSuppliers(Long rootOrgId) {
+        saveSupplier("徐工集团配件供应中心", "张经理", "13811110001", "工程机械", "江苏省徐州市", "A", rootOrgId);
+        saveSupplier("卡特彼勒授权经销商", "李经理", "13811110002", "发动机及液压件", "北京市朝阳区", "A", rootOrgId);
+        saveSupplier("华北工程物资有限公司", "王经理", "13811110003", "通用五金/易损件", "河北省石家庄市", "B", rootOrgId);
+        log.info("已初始化供应商");
+    }
+
+    private void saveSupplier(String name, String contact, String phone, String category, String address, String level, Long rootOrgId) {
+        Supplier s = new Supplier();
+        s.setName(name);
+        s.setContact(contact);
+        s.setPhone(phone);
+        s.setCategory(category);
+        s.setAddress(address);
+        s.setCreditLevel(level);
+        s.setStatus("enabled");
+        s.setOrgId(rootOrgId);
+        supplierRepository.save(s);
+    }
+
+    private void initSpareParts(Long rootOrgId) {
+        savePart("SP001", "液压油滤芯", "过滤件", "适配卡特彼勒320", "个", "450.00", 36, 10, "1号仓库", rootOrgId);
+        savePart("SP002", "发动机机油(15W-40)", "油品化工", "18L/桶", "桶", "680.00", 24, 6, "1号仓库", rootOrgId);
+        savePart("SP003", "铲斗油封组件", "密封件", "135型", "套", "320.00", 18, 6, "2号仓库", rootOrgId);
+        savePart("SP004", "空气滤芯", "过滤件", "标准", "个", "120.00", 60, 20, "1号仓库", rootOrgId);
+        savePart("SP005", "耐磨斗齿", "易损件", "LM320", "个", "85.00", 80, 30, "2号仓库", rootOrgId);
+        log.info("已初始化备件库存");
+    }
+
+    private void savePart(String partNo, String name, String category, String spec, String unit,
+                          String price, int stock, int min, String warehouse, Long rootOrgId) {
+        SparePart p = new SparePart();
+        p.setPartNo(partNo);
+        p.setName(name);
+        p.setCategory(category);
+        p.setSpec(spec);
+        p.setUnit(unit);
+        p.setPrice(new BigDecimal(price));
+        p.setStockQty(new BigDecimal(stock));
+        p.setMinStock(new BigDecimal(min));
+        p.setWarehouse(warehouse);
+        p.setOrgId(rootOrgId);
+        sparePartRepository.save(p);
     }
 }

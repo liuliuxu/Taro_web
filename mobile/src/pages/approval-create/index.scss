@@ -1,0 +1,154 @@
+.ac-page {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.ac-scroll {
+  padding: 20px 24px 60px;
+  box-sizing: border-box;
+}
+
+.ac-section-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 16px;
+}
+
+.ac-empty {
+  padding: 80px 0;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 26px;
+}
+
+.ac-proc {
+  background: #fff;
+  border-radius: 16px;
+  padding: 26px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-1);
+}
+
+.ac-proc-name {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.ac-proc-arrow {
+  color: var(--text-3);
+  font-size: 32px;
+}
+
+.ac-form-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.ac-form-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.ac-form-back {
+  font-size: 24px;
+  color: var(--primary);
+}
+
+.ac-field {
+  background: #fff;
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-1);
+}
+
+.ac-label {
+  display: block;
+  font-size: 24px;
+  color: var(--text-2);
+  margin-bottom: 12px;
+}
+
+.req {
+  color: #F2540E;
+  margin-left: 4px;
+}
+
+.ac-input {
+  font-size: 28px;
+  color: var(--text-1);
+}
+
+.ac-textarea {
+  width: 100%;
+  min-height: 120px;
+  font-size: 28px;
+  line-height: 1.6;
+}
+
+.ac-picker {
+  padding: 8px 0;
+}
+
+.ac-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ac-tag {
+  padding: 10px 22px;
+  border-radius: 30px;
+  background: var(--bg-2);
+  font-size: 24px;
+  color: var(--text-2);
+}
+
+.ac-tag-on {
+  background: #FF6B1A;
+  color: #fff;
+  font-weight: 600;
+}
+
+.ac-file {
+  font-size: 22px;
+  color: var(--primary);
+  background: #FFF1E8;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.ac-file Text {
+  color: #F2540E;
+  margin-left: 8px;
+}
+
+.ac-upload-btn {
+  margin-top: 12px;
+  font-size: 24px;
+  color: var(--primary);
+  padding: 12px;
+  border: 1px dashed #FFB27D;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.ac-submit {
+  margin-top: 20px;
+  background: linear-gradient(135deg, #FF8A3D, #F2540E);
+  color: #fff;
+  text-align: center;
+  padding: 24px 0;
+  border-radius: 16px;
+  font-size: 30px;
+  font-weight: 600;
+  box-shadow: 0 8px 20px rgba(242, 84, 14, 0.3);
+}

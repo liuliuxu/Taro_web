@@ -41,6 +41,20 @@ export const post = <T>(path: string, data?: unknown) =>
 export const put = <T>(path: string, data?: unknown) =>
   request<T>(path, { method: 'PUT', body: data === undefined ? undefined : JSON.stringify(data) })
 
+export async function upload(file: File): Promise<{ url: string; name: string }> {
+  const token = localStorage.getItem('hm_token')
+  const fd = new FormData()
+  fd.append('file', file)
+  const res = await fetch(`${BASE}/upload`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: fd
+  })
+  const json = await res.json()
+  if (json.code !== 200) throw new Error(json.message || '上传失败')
+  return json.data
+}
+
 export const qs = (params: Record<string, unknown>): string => {
   const clean = Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '')
   if (clean.length === 0) return ''

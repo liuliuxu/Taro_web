@@ -22,6 +22,9 @@ public class WorkOrder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** 所属机构（数据隔离） */
+    private Long orgId;
+
     /** 工单号 */
     @Column(nullable = false, unique = true, length = 40)
     private String workNo;

@@ -1,10 +1,20 @@
 import { api } from './request'
 import type {
+  ApprovalDetail,
+  ApprovalInstance,
+  ApprovalTask,
+  Announcement,
   DispatchTask,
+  FormDefinition,
+  InspectionPlan,
   Machinery,
+  OptionSet,
   Pagination,
+  ProcessDefinition,
   Project,
+  PurchaseOrder,
   RentalContract,
+  SparePart,
   User,
   WorkOrder,
   WorkOrderStats
@@ -145,5 +155,68 @@ export const rentalApi = {
   },
   handle(id: number, data: { status: string; note?: string }) {
     return api.post<RentalContract>(`/rentals/${id}/handle`, data, true)
+  }
+}
+
+export const approvalApi = {
+  startable() {
+    return api.get<ProcessDefinition[]>('/approval/startable', undefined, true)
+  },
+  form(id: number) {
+    return api.get<FormDefinition>('/approval/form', { id })
+  },
+  optionSets() {
+    return api.get<OptionSet[]>('/approval/option-sets')
+  },
+  submit(data: { processId: number; title?: string; bizType?: string; bizId?: number; formData: Record<string, any> }) {
+    return api.post<ApprovalInstance>('/approval/submit', data, true)
+  },
+  myApps() {
+    return api.get<ApprovalInstance[]>('/approval/my-apps', undefined, true)
+  },
+  todo() {
+    return api.get<ApprovalInstance[]>('/approval/todo', undefined, true)
+  },
+  detail(id: number) {
+    return api.get<ApprovalDetail>('/approval/detail', { id }, true)
+  },
+  approve(id: number, comment?: string) {
+    return api.post<ApprovalInstance>(`/approval/approve?id=${id}${comment ? `&comment=${encodeURIComponent(comment)}` : ''}`)
+  },
+  reject(id: number, comment?: string) {
+    return api.post<ApprovalInstance>(`/approval/reject?id=${id}${comment ? `&comment=${encodeURIComponent(comment)}` : ''}`)
+  },
+  withdraw(id: number) {
+    return api.post<ApprovalInstance>(`/approval/withdraw?id=${id}`)
+  }
+}
+
+export const announceApi = {
+  list() {
+    return api.get<Announcement[]>('/announcements', undefined, true)
+  }
+}
+
+export const sparePartApi = {
+  list(params?: { keyword?: string; category?: string }) {
+    return api.get<SparePart[]>('/spare-parts', params, true)
+  }
+}
+
+export const purchaseApi = {
+  list() {
+    return api.get<PurchaseOrder[]>('/purchases/my', undefined, true)
+  },
+  apply(data: { itemName: string; quantity?: number; unit?: string; supplierName?: string; unitPrice?: number; remark?: string }) {
+    return api.post<PurchaseOrder>('/purchases/apply', data, true)
+  }
+}
+
+export const inspectApi = {
+  todo() {
+    return api.get<InspectionPlan[]>('/inspection-plans/todo', undefined, true)
+  },
+  complete(id: number, memo?: string) {
+    return api.post<InspectionPlan>(`/inspection-plans/${id}/complete`, { memo }, true)
   }
 }

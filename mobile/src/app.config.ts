@@ -15,7 +15,15 @@ export default defineAppConfig({
     'pages/task-list/index',
     'pages/task-detail/index',
     'pages/rental-list/index',
-    'pages/rental-create/index'
+    'pages/rental-create/index',
+    'pages/approval-list/index',
+    'pages/approval-create/index',
+    'pages/approval-detail/index',
+    'pages/announcement-list/index',
+    'pages/spare-part-list/index',
+    'pages/purchase-list/index',
+    'pages/purchase-create/index',
+    'pages/inspect-list/index'
   ],
   window: {
     backgroundTextStyle: 'light',

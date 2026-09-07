@@ -1,30 +1,33 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Layout as AntLayout, Menu, Dropdown, Space, Typography } from 'antd'
+import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import type { User } from '../types'
 
-const NAVS = [
-  { to: '/dashboard', label: '数据仪表盘' },
-  { to: '/devices', label: '设备管理' },
-  { to: '/workorders', label: '维修工单' },
-  { to: '/projects', label: '工程管理' },
-  { to: '/rentals', label: '租赁管理' },
-  { to: '/users', label: '用户管理' }
+const MENU_ITEMS = [
+  { key: '/dashboard', label: '数据仪表盘' },
+  { key: '/devices', label: '设备管理' },
+  { key: '/workorders', label: '维修工单' },
+  { key: '/projects', label: '工程管理' },
+  { key: '/rentals', label: '租赁管理' },
+  { key: '/suppliers', label: '供应商管理' },
+  { key: '/purchases', label: '采购管理' },
+  { key: '/spare-parts', label: '备件库存' },
+  { key: '/inspection', label: '巡检保养' },
+  { key: '/contracts', label: '客户合同' },
+  { key: '/approval/config', label: '审批配置' },
+  { key: '/approval/instances', label: '审批中心' },
+  { key: '/announcements', label: '公告通知' },
+  { key: '/users', label: '用户管理' },
+  { key: '/orgs', label: '机构管理' }
 ]
 
 export default function Layout() {
   const navigate = useNavigate()
+  const location = useLocation()
   const raw = localStorage.getItem('hm_user')
   const user: User | null = raw ? JSON.parse(raw) : null
 
-  const titleMap: Record<string, string> = {
-    dashboard: '数据仪表盘',
-    devices: '设备管理',
-    workorders: '维修工单管理',
-    projects: '工程管理',
-    rentals: '租赁管理',
-    users: '用户管理'
-  }
-  const hash = window.location.hash.replace('#/', '').split('?')[0] || 'dashboard'
-  const title = titleMap[hash] || '数据仪表盘'
+  const selected = MENU_ITEMS.map((m) => m.key).find((k) => location.pathname.startsWith(k)) || '/dashboard'
 
   function logout() {
     localStorage.removeItem('hm_token')
@@ -33,34 +36,40 @@ export default function Layout() {
   }
 
   return (
-    <div className='layout'>
-      <aside className='sidebar'>
-        <div className='sidebar-logo'>
-          <div className='sb-title'>重工机械数字化平台</div>
-          <div className='sb-sub'>Administration Console</div>
+    <AntLayout style={{ minHeight: '100vh' }}>
+      <AntLayout.Sider theme='dark' width={200}>
+        <div style={{ color: '#fff', fontWeight: 700, fontSize: 16, padding: 16, letterSpacing: 1 }}>
+          重工机械数字化平台
         </div>
-        <nav className='sidebar-nav'>
-          {NAVS.map((n) => (
-            <NavLink key={n.to} to={n.to} className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}>
-              {n.label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className='sidebar-footer'>v2.0 企业内部版</div>
-      </aside>
-      <div className='main'>
-        <header className='topbar'>
-          <div className='topbar-title'>{title}</div>
-          <div className='topbar-user'>
-            <div className='topbar-avatar'>{user?.nickname?.charAt(0) || user?.username?.charAt(0) || 'A'}</div>
-            <span className='topbar-name'>{user?.nickname || user?.username || '管理员'}</span>
-            <button className='topbar-logout' onClick={logout}>退出登录</button>
-          </div>
-        </header>
-        <main className='content'>
+        <Menu
+          theme='dark'
+          mode='inline'
+          selectedKeys={[selected]}
+          items={MENU_ITEMS}
+          onClick={({ key }) => navigate(key)}
+        />
+      </AntLayout.Sider>
+      <AntLayout>
+        <AntLayout.Header
+          style={{ background: '#fff', padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            {MENU_ITEMS.find((m) => m.key === selected)?.label || '数据仪表盘'}
+          </Typography.Title>
+          <Space>
+            <UserOutlined />
+            <span>{user?.nickname || user?.username || '管理员'}</span>
+            <Dropdown
+              menu={{ items: [{ key: 'logout', icon: <LogoutOutlined />, label: '退出登录', onClick: logout }] }}
+            >
+              <span style={{ cursor: 'pointer' }}>···</span>
+            </Dropdown>
+          </Space>
+        </AntLayout.Header>
+        <AntLayout.Content style={{ margin: 16 }}>
           <Outlet />
-        </main>
-      </div>
-    </div>
+        </AntLayout.Content>
+      </AntLayout>
+    </AntLayout>
   )
 }

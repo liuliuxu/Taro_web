@@ -19,3 +19,6 @@ spring:
 jwt:
   secret: ${JWT_SECRET:please-change-this-secret-key-at-least-32-chars-long-123456}
   expiration: ${JWT_EXPIRATION:86400000}
+
+app:
+  upload-dir: ${UPLOAD_DIR:/data/www/heavy-machinery/uploads}

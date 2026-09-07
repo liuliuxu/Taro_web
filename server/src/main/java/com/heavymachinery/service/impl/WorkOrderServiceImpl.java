@@ -10,7 +10,9 @@ import com.heavymachinery.repository.MachineryRepository;
 import com.heavymachinery.repository.UserRepository;
 import com.heavymachinery.repository.WorkOrderRepository;
 import com.heavymachinery.service.AuthService;
+import com.heavymachinery.service.OrgService;
 import com.heavymachinery.service.WorkOrderService;
+import com.heavymachinery.util.OrgSpecs;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,15 +38,18 @@ public class WorkOrderServiceImpl implements WorkOrderService {
     private final MachineryRepository machineryRepository;
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final OrgService orgService;
 
     public WorkOrderServiceImpl(WorkOrderRepository workOrderRepository,
                                 MachineryRepository machineryRepository,
                                 UserRepository userRepository,
-                                AuthService authService) {
+                                AuthService authService,
+                                OrgService orgService) {
         this.workOrderRepository = workOrderRepository;
         this.machineryRepository = machineryRepository;
         this.userRepository = userRepository;
         this.authService = authService;
+        this.orgService = orgService;
     }
 
     @Override
@@ -87,7 +92,8 @@ public class WorkOrderServiceImpl implements WorkOrderService {
     public PageResult<WorkOrderVO> list(int page, int pageSize, String status, String keyword) {
         Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.DESC, "updatedAt"));
         Specification<WorkOrder> spec = buildSpec(status, keyword, null);
-        Page<WorkOrder> result = workOrderRepository.findAll(spec, pageable);
+        Page<WorkOrder> result = workOrderRepository.findAll(
+                OrgSpecs.withOrg(spec, orgService.visibleOrgIds()), pageable);
         return toPageResult(result, page, pageSize);
     }
 
@@ -118,7 +124,8 @@ public class WorkOrderServiceImpl implements WorkOrderService {
     public PageResult<WorkOrderVO> adminList(int page, int pageSize, String status, String keyword, Long assigneeUserId) {
         Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.DESC, "updatedAt"));
         Specification<WorkOrder> spec = buildSpec(status, keyword, assigneeUserId);
-        Page<WorkOrder> result = workOrderRepository.findAll(spec, pageable);
+        Page<WorkOrder> result = workOrderRepository.findAll(
+                OrgSpecs.withOrg(spec, orgService.visibleOrgIds()), pageable);
         return toPageResult(result, page, pageSize);
     }
 

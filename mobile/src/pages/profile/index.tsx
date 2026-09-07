@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { View, Text, ScrollView } from '@tarojs/components'
 import { authApi, workOrderApi, machineryApi } from '../../services/api'
@@ -25,6 +25,12 @@ function isCustomColor(v: unknown): v is string {
 export default function Profile() {
   const [user, setUser] = useState<User | null>(null)
   const [loggedIn, setLoggedIn] = useState(false)
+  // 默认用户防止渲染时 user 为 null
+  const defaultUser: User = {
+    id: 0, username: '游客', nickname: '游客', phone: '', email: '', role: 'customer',
+    avatar: '', createdAt: ''
+  }
+  const safeUser = user || defaultUser
   const [stats, setStats] = useState<any>(null)
   const [todos, setTodos] = useState<WorkOrder[]>([])
 
@@ -36,13 +42,21 @@ export default function Profile() {
     }
   })
 
+  useEffect(() => {
+    // 确保 loggedIn 为 true 时 user 永不为 null
+    if (loggedIn && user === null) {
+      setUser(defaultUser)
+    }
+  }, [loggedIn, user])
+
   async function loadData() {
     try {
       const p = await authApi.getProfile()
-      setUser(p)
+      setUser(p || defaultUser)
     } catch (e) {
       Taro.removeStorageSync('token')
       setLoggedIn(false)
+      setUser(defaultUser)
     }
     try {
       setStats(await workOrderApi.getStats())
@@ -52,7 +66,12 @@ export default function Profile() {
     } catch (e) { /* ignore */ }
   }
 
-  const roleLabel = user?.role === 'admin' ? '管理员' : user?.role === 'manager' ? '设备负责人' : user?.role === 'operator' ? '作业人员' : '成员'
+  const roleLabel = user && user.role
+  ? user.role === 'admin' ? '管理员'
+    : user.role === 'manager' ? '设备负责人'
+    : user.role === 'operator' ? '作业人员'
+    : '成员'
+  : '成员'
 
   function logout() {
     Taro.showModal({
@@ -153,25 +172,25 @@ export default function Profile() {
             </View>
             <View className='menu-card'>
               <View className='menu-item'><Text className='menu-label'>手机号</Text>
-                <View className='menu-right'><Text className='menu-value'>{user.phone || '—'}</Text></View>
+                <View className='menu-right'><Text className='menu-value'>{user?.phone || '—'}</Text></View>
               </View>
               <View className='menu-item'><Text className='menu-label'>邮箱</Text>
-                <View className='menu-right'><Text className='menu-value'>{user.email || '—'}</Text></View>
+                <View className='menu-right'><Text className='menu-value'>{user?.email || '—'}</Text></View>
               </View>
               <View className='menu-item'><Text className='menu-label'>入职日期</Text>
-                <View className='menu-right'><Text className='menu-value'>{user.hireDate || '—'}</Text></View>
+                <View className='menu-right'><Text className='menu-value'>{user?.hireDate || '—'}</Text></View>
               </View>
               <View className='menu-item'><Text className='menu-label'>工作年限</Text>
-                <View className='menu-right'><Text className='menu-value'>{user.workYears != null ? `${user.workYears} 年` : '—'}</Text></View>
+                <View className='menu-right'><Text className='menu-value'>{user?.workYears != null ? `${user?.workYears} 年` : '—'}</Text></View>
               </View>
               <View className='menu-item'><Text className='menu-label'>年假余额</Text>
-                <View className='menu-right'><Text className='menu-value'>{user.annualLeave != null ? `${user.annualLeave} 天` : '—'}</Text></View>
+                <View className='menu-right'><Text className='menu-value'>{user?.annualLeave != null ? `${user?.annualLeave} 天` : '—'}</Text></View>
               </View>
               <View className='menu-item'><Text className='menu-label'>调休余额</Text>
-                <View className='menu-right'><Text className='menu-value'>{user.compensatoryLeave != null ? `${user.compensatoryLeave} 小时` : '—'}</Text></View>
+                <View className='menu-right'><Text className='menu-value'>{user?.compensatoryLeave != null ? `${user?.compensatoryLeave} 小时` : '—'}</Text></View>
               </View>
               <View className='menu-item menu-last'><Text className='menu-label'>本月加班</Text>
-                <View className='menu-right'><Text className='menu-value'>{user.overtime != null ? `${user.overtime} 小时` : '—'}</Text></View>
+                <View className='menu-right'><Text className='menu-value'>{user?.overtime != null ? `${user?.overtime} 小时` : '—'}</Text></View>
               </View>
             </View>
           </View>

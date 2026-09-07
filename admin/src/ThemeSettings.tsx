@@ -1,8 +1,9 @@
-import { Drawer, Segmented, ColorPicker, Switch, Divider, Button, Space, Typography, InputNumber, Input, Select } from 'antd'
-import { RotateLeftOutlined } from '@ant-design/icons'
+import { Drawer, Segmented, ColorPicker, Switch, Divider, Button, Space, Typography, InputNumber, Input, Select, Upload, message } from 'antd'
+import { RotateLeftOutlined, UploadOutlined, CloseOutlined } from '@ant-design/icons'
 import { useThemeCtx, FONT_OPTIONS, DEFAULT_SETTINGS, resolveFontPx } from './theme'
 import type { MenuStyle, LayoutStyle } from './theme'
 import { ICON_MAP, ICON_OPTIONS } from './icons'
+import { upload } from './api'
 
 const PRESETS = ['#FF6B1A', '#1677FF', '#00B96B', '#722ED1', '#FA541C', '#13C2C2', '#EB2F96', '#16283B']
 
@@ -49,17 +50,35 @@ export default function ThemeSettings({ open, onClose }: Props) {
       <Divider style={{ margin: '18px 0' }} />
       <Typography.Title level={5} style={{ fontSize: 14, marginBottom: 10 }}>系统标识</Typography.Title>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <Space size={4}>
+        <div style={{ width: 40, height: 40, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, background: s.color, color: '#fff', overflow: 'hidden' }}>
+          {s.appIconUrl ? <img src={s.appIconUrl} alt='logo' style={{ width: 26, height: 26, objectFit: 'contain', display: 'block' }} /> : (ICON_MAP[s.appIcon] || ICON_MAP.compass)}
+        </div>
+        <Space size={4} wrap>
+          <Upload
+            accept='image/*'
+            showUploadList={false}
+            beforeUpload={(file) => {
+              const isImg = file.type.startsWith('image/')
+              if (!isImg) { message.error('只能上传图片文件'); return Upload.LIST_IGNORE }
+              upload(file).then((res) => {
+                update({ appIconUrl: res.url })
+                message.success('图标已上传')
+              }).catch((e) => message.error(e?.message || '上传失败'))
+              return false
+            }}
+          >
+            <Button icon={<UploadOutlined />}>上传图标</Button>
+          </Upload>
+          {s.appIconUrl && (
+            <Button icon={<CloseOutlined />} onClick={() => update({ appIconUrl: undefined })}>移除自定义图标</Button>
+          )}
           <Select
-            showSearch size='large' style={{ width: 200 }}
+            showSearch size='middle' style={{ width: 170 }}
             value={s.appIcon}
             options={ICON_OPTIONS}
             onChange={(v) => update({ appIcon: v })}
           />
         </Space>
-        <div style={{ width: 40, height: 40, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, background: s.color, color: '#fff' }}>
-          {ICON_MAP[s.appIcon] || ICON_MAP.compass}
-        </div>
       </div>
       <Input
         size='large'

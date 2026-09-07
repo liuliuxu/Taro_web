@@ -86,6 +86,37 @@ const ICON_MAP: Record<string, ReactNode> = {
 
 interface TabItem { path: string; label: string }
 
+function buildMenus(db: SysMenu[] | null): MenuGroup[] {
+  if (!db || db.length === 0) return STATIC_GROUPS
+  const byId = new Map(db.map((m) => [m.id, m]))
+  const enabled = db.filter((m) => m.enabled !== false)
+  const bySort = (a: SysMenu, b: SysMenu) => (a.sort ?? 0) - (b.sort ?? 0)
+  const parents = enabled.filter((m) => m.type === 'parent')
+  const groups = parents.map((p) => {
+    const children = enabled
+      .filter((m) => m.type === 'item' && m.parentId === p.id)
+      .sort(bySort)
+    return {
+      key: 'db-' + p.id,
+      sort: p.sort ?? 0,
+      label: p.name,
+      icon: p.icon ? ICON_MAP[p.icon] : undefined,
+      children: children.map((c) => ({ key: c.path || '', label: c.name, icon: c.icon ? ICON_MAP[c.icon] : undefined }))
+    }
+  })
+  const topItems = enabled
+    .filter((m) => m.type === 'item' && (m.parentId == null || !byId.has(m.parentId)))
+    .sort(bySort)
+    .map((m) => ({
+      key: m.path || 'db-item-' + m.id,
+      sort: m.sort ?? 0,
+      label: m.name,
+      icon: m.icon ? ICON_MAP[m.icon] : undefined
+    }))
+  const merged = [...groups, ...topItems].sort((a, b) => a.sort - b.sort)
+  return merged.map((m) => ({ key: m.key, label: m.label, icon: m.icon, children: (m as any).children }))
+}
+
 function luminance(hex: string) {
   const c = hex.replace('#', '')
   const r = parseInt(c.substr(0, 2), 16) / 255
@@ -94,39 +125,16 @@ function luminance(hex: string) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 
-function buildMenus(db: SysMenu[] | null): MenuGroup[] {
-  if (!db || db.length === 0) return STATIC_GROUPS
-  const byId = new Map(db.map((m) => [m.id, m]))
-  const groups: MenuGroup[] = []
-  const enabled = db.filter((m) => m.enabled !== false)
-  const parents = enabled.filter((m) => m.type === 'parent').sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
-  for (const p of parents) {
-    const children = enabled
-      .filter((m) => m.type === 'item' && m.parentId === p.id)
-      .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
-    if (children.length > 0) {
-      groups.push({
-        key: 'db-' + p.id,
-        label: p.name,
-        icon: p.icon ? ICON_MAP[p.icon] : undefined,
-        children: children.map((c) => ({ key: c.path || '', label: c.name, icon: c.icon ? ICON_MAP[c.icon] : undefined }))
-      })
-    }
-  }
-  const topItems = enabled
-    .filter((m) => m.type === 'item' && (m.parentId == null || !byId.has(m.parentId)))
-    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
-  for (const m of topItems) {
-    groups.push({ key: m.path || 'db-item-' + m.id, label: m.name, icon: m.icon ? ICON_MAP[m.icon] : undefined })
-  }
-  return groups
+function renderBrandIcon(img: string | undefined): ReactNode {
+  if (img) return <img src={img} alt='logo' style={{ width: 22, height: 22, objectFit: 'contain', display: 'block' }} />
+  return null
 }
 
 export default function Layout() {
   const navigate = useNavigate()
   const location = useLocation()
   const outlet = useOutlet()
-  const { settings, update, dark } = useThemeCtx()
+  const { settings, update, dark, appIconUrl } = useThemeCtx()
   const raw = localStorage.getItem('hm_user')
   const user: User | null = raw ? JSON.parse(raw) : null
 
@@ -188,7 +196,7 @@ export default function Layout() {
   const siderBg = 'var(--hm-sider)'
   const menuTheme = siderDark ? 'dark' : 'light'
 
-  const brandIcon = ICON_MAP[settings.appIcon] || ICON_MAP.compass
+  const brandIcon = renderBrandIcon(appIconUrl) || ICON_MAP[settings.appIcon] || ICON_MAP.compass
   const brandName = settings.appName || '机械数字化平台'
 
   const menuItems = MENU_GROUPS.map((g) =>

@@ -32,6 +32,7 @@ export interface ThemeSettings {
   siderVisible: boolean
   menuStyle: MenuStyle
   multiTab: boolean
+  appIconUrl?: string
 }
 
 export const DEFAULT_SETTINGS: ThemeSettings = {
@@ -76,6 +77,7 @@ export interface ThemeCtxShape {
   linkColor: string
   menuColor: string
   chartColor: string
+  appIconUrl: string | undefined
 }
 
 export function resolveFontPx(s: ThemeSettings): number {
@@ -94,7 +96,8 @@ export const ThemeCtx = createContext<ThemeCtxShape>({
   btnColor: DEFAULT_SETTINGS.color,
   linkColor: DEFAULT_SETTINGS.color,
   menuColor: DEFAULT_SETTINGS.color,
-  chartColor: DEFAULT_SETTINGS.color
+  chartColor: DEFAULT_SETTINGS.color,
+  appIconUrl: undefined
 })
 export const useThemeCtx = () => useContext(ThemeCtx)
 
@@ -143,7 +146,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   )
 
   return (
-    <ThemeCtx.Provider value={{ settings, update, reset, dark, fontPx, btnColor, linkColor, menuColor, chartColor }}>
+    <ThemeCtx.Provider value={{ settings, update, reset, dark, fontPx, btnColor, linkColor, menuColor, chartColor, appIconUrl: settings.appIconUrl }}>
       <ConfigProvider theme={antdConfig}>
         {children}
       </ConfigProvider>

@@ -7,14 +7,10 @@ import type { SysMenu } from '../types'
 import { confirmAction } from '../confirm'
 import { ICON_MAP, ICON_OPTIONS } from '../icons'
 
-interface TNode extends SysMenu {
-  children?: TNode[]
-}
-
 const nodeIcon = (icon?: string) => ICON_MAP[icon || '']
 
-function sortBy(m: SysMenu) {
-  return m.sort ?? 0
+function sortBy(a: SysMenu, b: SysMenu) {
+  return (a.sort ?? 0) - (b.sort ?? 0)
 }
 
 export default function Menus() {
@@ -39,20 +35,22 @@ export default function Menus() {
   useEffect(() => { load() }, [])
 
   const treeData: TreeDataNode[] = useMemo(() => {
-    const parentsNodes = parents
-      .sort(sortBy)
-      .map((p) => {
-        const children = list
-          .filter((m) => m.type === 'item' && m.parentId === p.id)
-          .sort(sortBy)
-          .map((c) => ({ key: String(c.id), icon: nodeIcon(c.icon), title: renderTitle(c) }))
-        return { key: String(p.id), icon: nodeIcon(p.icon) || <FolderOutlined />, title: renderTitle(p), children }
-      })
+    const root: { item: SysMenu; node: TreeDataNode }[] = []
+    const parentsSorted = [...parents].sort(sortBy)
+    for (const p of parentsSorted) {
+      const children = list
+        .filter((m) => m.type === 'item' && m.parentId === p.id)
+        .sort(sortBy)
+        .map((c) => ({ key: String(c.id), icon: nodeIcon(c.icon), title: renderTitle(c) }))
+      root.push({ item: p, node: { key: String(p.id), icon: nodeIcon(p.icon) || <FolderOutlined />, title: renderTitle(p), children } })
+    }
     const topItems = list
       .filter((m) => m.type === 'item' && (m.parentId == null || !byId.get(m.parentId)))
       .sort(sortBy)
-      .map((c) => ({ key: String(c.id), icon: nodeIcon(c.icon), title: renderTitle(c) }))
-    return [...parentsNodes, ...topItems]
+      .map((c) => ({ item: c, node: { key: String(c.id), icon: nodeIcon(c.icon), title: renderTitle(c) } }))
+    root.push(...topItems)
+    root.sort((a, b) => (a.item.sort ?? 0) - (b.item.sort ?? 0))
+    return root.map((r) => r.node)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [list])
 
@@ -131,61 +129,55 @@ export default function Menus() {
   }
 
   async function onDrop(info: { dragNode: TreeDataNode; node: TreeDataNode; dropPosition: number }) {
-    const dragKey = Number(info.dragNode.key)
-    const dropKey = Number(info.node.key)
-    const dragObj = byId.get(dragKey)
-    if (!dragObj) return
+    const drag = byId.get(Number(info.dragNode.key))
+    const drop = byId.get(Number(info.node.key))
+    if (!drag || !drop) return
 
-    // antd 规范：根据节点层级计算相对落点（-1 前 / 0 内 / 1 后）
-    const dropPos = (info.node as any).pos.split('-')
-    const relPos = info.dropPosition - Number(dropPos[dropPos.length - 1])
+    // antd 规范：相对落点（-1 前 / 0 内 / 1 后）
+    const pos = (info.node as any).pos.split('-')
+    const relPos = info.dropPosition - Number(pos[pos.length - 1])
 
-    const tree = buildTree(list)
-    const flatBefore = new Map(list.map((m) => [m.id, `${m.parentId ?? ''}:${m.sort ?? 0}`]))
+    const before = new Map(list.map((m) => [m.id, `${m.parentId ?? ''}:${m.sort ?? 0}`]))
+    const next = list.map<SysMenu>((m) => ({ ...m }))
+    const moved = next.find((m) => m.id === drag.id)!
 
-    let dragNode: TNode | null = null
-    const loop = (nodes: TNode[], key: number, cb: (item: TNode, i: number, arr: TNode[]) => void) => {
-      nodes.forEach((item, i) => {
-        if (item.id === key) return cb(item, i, nodes)
-        if (item.children?.length) loop(item.children, key, cb)
-      })
-    }
+    const containerOf = (m: SysMenu) => (m.type === 'parent' ? null : (m.parentId ?? null))
+    const siblingsOf = (containerId: number | null, include = true) =>
+      next
+        .filter((m) => (m.id === moved.id ? include : true) && containerOf(m) === containerId)
+        .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
 
-    const arr = tree as TNode[]
-    loop(arr, dragKey, (item, i, a) => { a.splice(i, 1); dragNode = item })
-    if (!dragNode) return
-
+    let containerId: number | null
     if (relPos === 0) {
-      // 放入节点内：仅 菜单→分组 允许
-      loop(arr, dropKey, (item) => {
-        if (item.type !== 'parent') return
-        item.children = item.children || []
-        item.children.push(dragNode!)
-        dragNode!.parentId = item.id
-      })
+      // 放入分组内
+      containerId = drop.id
+      const siblings = siblingsOf(containerId, false)
+      moved.parentId = containerId
+      siblings.forEach((m, i) => { m.sort = i })
+      moved.sort = siblings.length
     } else {
-      // 同层插入：前(-1)/后(1)
-      loop(arr, dropKey, (item, i, a) => {
-        if (dragNode!.type === 'parent' && item.children) {
-          a.splice(relPos === -1 ? i : i + 1, 0, dragNode!)
-          return
-        }
-        if (dragNode!.type === 'parent' && item.type === 'item') return
-        if (dragNode!.parentId !== item.parentId && item.type !== 'parent') {
-          dragNode!.parentId = item.parentId ?? null
-        }
-        a.splice(relPos === -1 ? i : i + 1, 0, dragNode!)
-      })
+      // 同层缝隙：before → 前；after → 后
+      containerId = containerOf(drop)
+      if (containerId !== containerOf(moved)) moved.parentId = containerId
+      const siblings = siblingsOf(containerId)
+      const from = siblings.indexOf(moved)
+      const anchor = siblings.findIndex((m) => m.id === drop.id)
+      siblings.splice(from, 1)
+      const at = relPos === -1 ? anchor : anchor + 1
+      siblings.splice(Math.min(at, siblings.length), 0, moved)
+      siblings.forEach((m, i) => { m.sort = i })
     }
 
-    const next = flatten(arr)
     const changed = next.filter((m) => {
-      const old = flatBefore.get(m.id)
+      const old = before.get(m.id)
       return old !== `${m.parentId ?? ''}:${m.sort ?? 0}`
     })
     if (changed.length === 0) return
     try {
-      await Promise.all(changed.map((m) => put(`/admin/menus/${m.id}`, m)))
+      await Promise.all(changed.map((m) => {
+        const { id, type, name, path, icon, parentId, sort, enabled, cached } = m
+        return put(`/admin/menus/${id}`, { id, type, name, path, icon, parentId: parentId ?? null, sort, enabled, cached })
+      }))
       message.success('排序已更新')
       setList(next)
       window.dispatchEvent(new Event('hm-menus-refresh'))
@@ -244,30 +236,4 @@ export default function Menus() {
       </Modal>
     </div>
   )
-}
-
-function buildTree(list: SysMenu[]): TNode[] {
-  const byId = new Map(list.map((m) => [m.id, m]))
-  const itemNodes = (pid: number) =>
-    list
-      .filter((m) => m.type === 'item' && m.parentId === pid)
-      .sort(sortBy)
-      .map((m) => ({ ...m }))
-  const parentNodes = list
-    .filter((m) => m.type === 'parent')
-    .sort(sortBy)
-    .map((m) => ({ ...m, children: itemNodes(m.id) }))
-  const topItems = list
-    .filter((m) => m.type === 'item' && (m.parentId == null || !byId.get(m.parentId)))
-    .sort(sortBy)
-    .map((m) => ({ ...m }))
-  return [...parentNodes, ...topItems]
-}
-
-function flatten(nodes: TNode[], parentId: number | null | undefined = null, out: SysMenu[] = []): SysMenu[] {
-  nodes.forEach((n, i) => {
-    out.push({ ...n, parentId, sort: i })
-    if (n.children?.length) flatten(n.children, n.id, out)
-  })
-  return out
 }

@@ -1,16 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { Card, Statistic, Row, Col, Button, Modal, Spin, message } from 'antd'
 import * as THREE from 'three'
-import type { Machinery } from '../types'
+import { get, qs } from '../api'
+import type { Machinery, Pagination } from '../types'
 import styles from './DigitalTwin.module.css'
-
-// 本地 machineryApi
-const machineryApi = {
-  getList: (params?: Record<string, unknown>) => {
-    const query = new URLSearchParams(params as Record<string, string>).toString()
-    return get<{ data: Machinery[] }>(`/machinery/list${query ? '?' + query : ''}`)
-  }
-}
 
 // 设备类型配置
 const EQUIPMENT_CONFIG: Record<string, { color: number; height: number; geometry: 'box' | 'cylinder' | 'group' }> = {
@@ -364,14 +357,15 @@ function DigitalTwin() {
   const loadMachines = async () => {
     try {
       setLoading(true)
-      const list = await machineryApi.getList({ pageSize: 50 })
-      setMachines(list.data)
+      const res = await get<Pagination<Machinery>>('/machinery/list' + qs({ page: 1, pageSize: 50 }))
+      const list = res.list
+      setMachines(list)
       setStats({
-        total: list.data.length,
-        running: list.data.filter(m => ['running', 'working'].includes(m.status)).length,
-        idle: list.data.filter(m => m.status === 'idle').length,
-        warning: list.data.filter(m => ['warning', 'maintenance'].includes(m.status)).length,
-        offline: list.data.filter(m => ['offline', 'error'].includes(m.status)).length,
+        total: list.length,
+        running: list.filter(m => m.status === 'available').length,
+        idle: list.filter(m => m.status === 'idle' || m.status === 'offline').length,
+        warning: list.filter(m => m.status === 'maintenance').length,
+        offline: list.filter(m => m.status === 'error' || m.status === 'scrapped').length,
       })
     } catch { message.error('加载设备失败') } finally { setLoading(false) }
   }
@@ -397,7 +391,7 @@ function DigitalTwin() {
 
   useEffect(() => { loadMachines() }, [])
 
-  if (loading) return <Spin size="large" tip="正在构建数字孪生场景..." style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
+  if (loading) return <Spin size="large" description="正在构建数字孪生场景..." style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
 
   return (
     <div className={styles.page}>
@@ -411,7 +405,7 @@ function DigitalTwin() {
         </div>
         <div className={styles.stats}>
           {statCards.map(s => (
-            <div key={s.key} className={`${styles.stat} ${stats[s.key as keyof typeof stats] > 0 ? 'active' : ''} ${s.key === 'total' ? 'total' : ''}`}>
+            <div key={s.key} className={`${styles.stat} ${stats[s.key as keyof typeof stats] > 0 ? styles.active : ''} ${s.key === 'total' ? styles.total : ''}`}>
               <span className={styles.statNum}>{stats[s.key as keyof typeof stats]}</span>
               <span className={styles.statLabel}>{s.title}</span>
             </div>
@@ -471,10 +465,25 @@ function DigitalTwin() {
   )
 }
 
-function getCategoryColor(cat: string) { return '#' + (EQUIPMENT_CONFIG[cat]?.color || 0xFF6B1A).toString(16).padStart(6, '0') }
+function mapCategory(cat: string): string {
+  const map: Record<string, string> = {
+    '挖掘机': 'excavator',
+    '装载机': 'loader',
+    '推土机': 'bulldozer',
+    '压路机': 'roller',
+    '起重机': 'crane',
+    '塔吊': 'crane',
+    '自卸车': 'truck',
+    '发电机': 'generator',
+    '压缩机': 'compressor',
+  }
+  return map[cat] || 'excavator'
+}
+
+function getCategoryColor(cat: string) { return '#' + (EQUIPMENT_CONFIG[mapCategory(cat)]?.color || 0xFF6B1A).toString(16).padStart(6, '0') }
 function darken(hex: string) { const r = parseInt(hex.slice(1,3),16); const g = parseInt(hex.slice(3,5),16); const b = parseInt(hex.slice(5,7),16); return `#${(r*0.7|0).toString(16).padStart(2,'0')}${(g*0.7|0).toString(16).padStart(2,'0')}${(b*0.7|0).toString(16).padStart(2,'0')}` }
 function getStatusText(s: string) { return ({ running: '运行中', working: '作业中', idle: '待机', warning: '预警', maintenance: '维护中', offline: '离线', error: '故障' })[s] || s }
 function getStatusClass(s: string) { return ['running','working'].includes(s) ? 'running' : s === 'idle' ? 'idle' : ['warning','maintenance'].includes(s) ? 'warning' : 'offline' }
-function getCategoryName(c: string) { return ({ excavator: '挖掘机', loader: '装载机', bulldozer: '推土机', roller: '压路机', crane: '起重机', truck: '自卸车', generator: '发电机', compressor: '压缩机' })[c] || c }
+function getCategoryName(c: string) { return ({ excavator: '挖掘机', loader: '装载机', bulldozer: '推土机', roller: '压路机', crane: '起重机', truck: '自卸车', generator: '发电机', compressor: '压缩机' })[mapCategory(c)] || c }
 
 export default DigitalTwin

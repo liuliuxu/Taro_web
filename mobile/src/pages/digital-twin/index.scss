@@ -1,0 +1,344 @@
+.dt-page {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.dt-loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(155deg, #0F1B2E 0%, #16283B 40%, #1E3A55 100%);
+  z-index: 9999;
+}
+
+.dt-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 107, 26, 0.2);
+  border-top-color: #FF6B1A;
+  border-radius: 50%;
+  animation: dt-spin 1s linear infinite;
+  margin-bottom: 24px;
+}
+
+@keyframes dt-spin {
+  to { transform: rotate(360deg); }
+}
+
+.dt-canvas-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+}
+
+.dt-canvas-wrap canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 顶部统计栏 */
+.dt-top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: linear-gradient(180deg, rgba(10, 22, 40, 0.95) 0%, rgba(10, 22, 40, 0) 100%);
+  padding: 16px 20px 20px;
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 107, 26, 0.15);
+}
+
+.dt-title-main {
+  font-size: 30px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dt-title-sub {
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 1px;
+}
+
+.dt-stats {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.dt-stat {
+  flex: 1;
+  min-width: 80px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 107, 26, 0.15);
+  border-radius: 16px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.dt-stat.active {
+  background: linear-gradient(135deg, rgba(255, 107, 26, 0.2), rgba(255, 107, 26, 0.05));
+  border-color: #FF6B1A;
+  box-shadow: 0 4px 20px rgba(255, 107, 26, 0.2);
+}
+
+.dt-stat.total {
+  background: linear-gradient(135deg, rgba(30, 144, 255, 0.2), rgba(30, 144, 255, 0.05));
+  border-color: #1E90FF;
+}
+
+.dt-stat-num {
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.dt-stat.active .dt-stat-num {
+  color: #FF6B1A;
+}
+
+.dt-stat.total .dt-stat-num {
+  color: #1E90FF;
+}
+
+.dt-stat-label {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* 悬浮按钮组 */
+.dt-fab-group {
+  position: fixed;
+  right: 20px;
+  bottom: 120px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dt-fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF8A3D, #F2540E);
+  color: #fff;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(255, 107, 26, 0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dt-fab:active {
+  transform: scale(0.92);
+}
+
+.dt-fab-icon {
+  font-size: 22px;
+}
+
+/* 详情面板 */
+.dt-detail-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: linear-gradient(180deg, rgba(10, 22, 40, 0.98) 0%, #0a1628 100%);
+  backdrop-filter: blur(30px);
+  border-top: 1px solid rgba(255, 107, 26, 0.15);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
+  animation: dt-slide-up 0.3s ease-out;
+  max-height: 65vh;
+}
+
+@keyframes dt-slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.dt-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dt-detail-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.dt-detail-avatar Text {
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.dt-detail-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.dt-detail-name {
+  font-size: 26px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dt-detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dt-status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dt-status-badge.running { background: rgba(0, 255, 0, 0.2); color: #00ff00; }
+.dt-status-badge.idle { background: rgba(51, 153, 255, 0.2); color: #3399ff; }
+.dt-status-badge.warning { background: rgba(255, 170, 0, 0.2); color: #ffaa00; }
+.dt-status-badge.offline { background: rgba(255, 51, 0, 0.2); color: #ff3300; }
+
+.dt-category {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dt-detail-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dt-detail-close:active {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.dt-detail-content {
+  padding: 20px 24px;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.dt-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.dt-label {
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dt-value {
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+  text-align: right;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dt-status-text {
+  color: #fff;
+}
+
+.dt-status-text.running { color: #00ff00; }
+.dt-status-text.idle { color: #3399ff; }
+.dt-status-text.warning { color: #ffaa00; }
+.dt-status-text.offline { color: #ff3300; }
+
+.dt-detail-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dt-action-btn {
+  flex: 1;
+  height: 52px !important;
+  border-radius: 14px !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+}
+
+.dt-action-btn.primary {
+  background: linear-gradient(135deg, #FF8A3D, #F2540E) !important;
+}
+
+.dt-action-btn.secondary {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #fff !important;
+}
+
+/* 滚动条样式 */
+.dt-detail-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dt-detail-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dt-detail-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 26, 0.3);
+  border-radius: 2px;
+}
+
+.dt-detail-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 26, 0.5);
+}

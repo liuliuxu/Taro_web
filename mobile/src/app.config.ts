@@ -24,7 +24,8 @@ export default defineAppConfig({
     'pages/spare-part-list/index',
     'pages/purchase-list/index',
     'pages/purchase-create/index',
-    'pages/inspect-list/index'
+    'pages/inspect-list/index',
+    'pages/digital-twin/index'
   ],
   window: {
     backgroundTextStyle: 'light',
@@ -49,6 +50,12 @@ export default defineAppConfig({
         text: '设备',
         iconPath: 'assets/icons/device.png',
         selectedIconPath: 'assets/icons/device-active.png'
+      },
+      {
+        pagePath: 'pages/digital-twin/index',
+        text: '孪生',
+        iconPath: 'assets/icons/twin.png',
+        selectedIconPath: 'assets/icons/twin-active.png'
       },
       {
         pagePath: 'pages/workorder-list/index',

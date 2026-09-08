@@ -5,7 +5,7 @@ import {
   LogoutOutlined, UserOutlined, DashboardOutlined, ToolOutlined, FileDoneOutlined, SafetyCertificateOutlined,
   ProjectOutlined, CarryOutOutlined, TeamOutlined, ShoppingCartOutlined, DatabaseOutlined, AuditOutlined,
   SettingOutlined, NotificationOutlined, ApartmentOutlined, AppstoreOutlined, ShoppingOutlined, BarChartOutlined,
-  MenuUnfoldOutlined
+  MenuUnfoldOutlined, ScanOutlined
 } from '@ant-design/icons'
 import type { User, SysMenu } from '../types'
 import type { ReactNode } from 'react'
@@ -29,7 +29,8 @@ const STATIC_GROUPS: MenuGroup[] = [
     key: 'g-devices', label: '设备运维', icon: <AppstoreOutlined />, children: [
       { key: '/devices', label: '设备管理', icon: <ToolOutlined /> },
       { key: '/workorders', label: '维修工单', icon: <FileDoneOutlined /> },
-      { key: '/inspection', label: '巡检保养', icon: <SafetyCertificateOutlined /> }
+      { key: '/inspection', label: '巡检保养', icon: <SafetyCertificateOutlined /> },
+      { key: '/digital-twin', label: '数字孪生', icon: <ScanOutlined /> }
     ]
   },
   {
@@ -81,7 +82,8 @@ const ICON_MAP: Record<string, ReactNode> = {
   user: <UserOutlined />,
   apartment: <ApartmentOutlined />,
   menu: <AppstoreOutlined />,
-  box: <DatabaseOutlined />
+  box: <DatabaseOutlined />,
+  scan: <ScanOutlined />
 }
 
 interface TabItem { path: string; label: string }

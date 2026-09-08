@@ -20,6 +20,7 @@ import Menus from './pages/Menus'
 import Contracts from './pages/Contracts'
 import ApprovalConfig from './pages/ApprovalConfig'
 import ApprovalInstances from './pages/ApprovalInstances'
+import DigitalTwin from './pages/DigitalTwin'
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
   const [token] = useState(() => localStorage.getItem('hm_token'))
@@ -59,6 +60,7 @@ export default function App() {
             <Route path='contracts' element={<Contracts />} />
             <Route path='approval/config' element={<ApprovalConfig />} />
             <Route path='approval/instances' element={<ApprovalInstances />} />
+            <Route path='digital-twin' element={<DigitalTwin />} />
           </Route>
           <Route path='*' element={<Navigate to='/' replace />} />
         </Routes>

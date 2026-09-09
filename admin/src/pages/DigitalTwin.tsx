@@ -7,7 +7,7 @@ import {
   AppstoreOutlined, CheckCircleOutlined, SwapOutlined, ToolOutlined, FileTextOutlined,
   SyncOutlined, AuditOutlined, ProjectOutlined, AimOutlined, HeatMapOutlined,
   NodeIndexOutlined, TagOutlined, UndoOutlined, ZoomInOutlined, ZoomOutOutlined,
-  EnvironmentOutlined, ScheduleOutlined
+  EnvironmentOutlined, ScheduleOutlined, FullscreenOutlined, FullscreenExitOutlined
 } from '@ant-design/icons'
 import * as echarts from 'echarts'
 import { useNavigate } from 'react-router-dom'
@@ -66,6 +66,8 @@ export default function DigitalTwin() {
   const [charts, setCharts] = useState<ChartsData | null>(null)
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([])
   const [loading, setLoading] = useState(true)
+  const pageRef = useRef<HTMLDivElement>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   // 筛选条件
   const [keyword, setKeyword] = useState('')
@@ -81,6 +83,24 @@ export default function DigitalTwin() {
   const [showLabels, setShowLabels] = useState(true)
   const [zoom, setZoom] = useState(1)
   const [focusTick, setFocusTick] = useState(0)
+
+  useEffect(() => {
+    const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
+    document.addEventListener('fullscreenchange', onFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange)
+  }, [])
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await pageRef.current?.requestFullscreen?.()
+      } else {
+        await document.exitFullscreen()
+      }
+    } catch {
+      message.warning('当前环境不支持全屏，请使用 F11/ESC')
+    }
+  }
 
   useEffect(() => {
     Promise.all([
@@ -250,7 +270,7 @@ export default function DigitalTwin() {
 
   return (
     <ConfigProvider theme={{ algorithm: theme.darkAlgorithm, token: { colorPrimary: '#4096ff', borderRadius: 6, fontSize: 13 } }}>
-      <div className={styles.page} style={{ height: pageHeight }}>
+      <div ref={pageRef} className={styles.page} style={{ height: isFullscreen ? '100vh' : pageHeight }}>
         {loading ? (
           <div className={styles.loadingWrap}><Spin size='large' tip='正在构建数字孪生场景...' /></div>
         ) : (
@@ -338,6 +358,9 @@ export default function DigitalTwin() {
                       options={[{ value: 'all', label: '全场' }, ...TWIN_ZONES.map(z => ({ value: z.key, label: z.name }))]} />
                     <Button size='small' type='text' icon={<ZoomOutOutlined />} onClick={() => setZoom(z => Math.max(0.6, +(z - 0.15).toFixed(2)))} />
                     <Button size='small' type='text' icon={<ZoomInOutlined />} onClick={() => setZoom(z => Math.min(1.8, +(z + 0.15).toFixed(2)))} />
+                    <Tooltip title={isFullscreen ? '退出全屏' : '进入全屏'}>
+                      <Button size='small' type='text' icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />} onClick={toggleFullscreen} />
+                    </Tooltip>
                   </div>
                 </div>
 

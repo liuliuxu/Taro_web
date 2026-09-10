@@ -39,10 +39,10 @@ export default function Login() {
           <div className='login-orb login-orb-brand' />
           
           <div className='login-logo'>
-            <span className='login-logo-char'>重</span>
+            <span className='login-logo-char'>机</span>
           </div>
           
-          <h1 className='login-brand-title'>重工设备管理平台</h1>
+          <h1 className='login-brand-title'>机械管理平台</h1>
           <p className='login-brand-slogan'>企业内部 · 设备台账 · 维修闭环</p>
           
           <ul className='login-features'>
@@ -124,7 +124,7 @@ export default function Login() {
                 </div>
               </div>
               <Typography.Text type='secondary' className='login-copyright'>
-                重工机械一体化管理平台 v1.1
+                机械一体化管理平台 v1.1
               </Typography.Text>
             </div>
           </div>

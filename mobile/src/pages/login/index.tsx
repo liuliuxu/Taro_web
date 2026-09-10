@@ -32,8 +32,8 @@ export default function Login() {
   return (
     <View className='login-page'>
       <View className='login-hero'>
-        <View className='login-logo'>重</View>
-        <Text className='login-app'>重工设备管理</Text>
+        <View className='login-logo'>机</View>
+        <Text className='login-app'>机械管理</Text>
         <Text className='login-slogan'>企业内部 · 设备台账 · 维修闭环</Text>
       </View>
 
@@ -74,7 +74,7 @@ export default function Login() {
         </View>
       </View>
 
-      <View className='login-footer'>重工机械一体化管理平台 v1.0</View>
+      <View className='login-footer'>机械一体化管理平台 v1.0</View>
     </View>
   )
 }

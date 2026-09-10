@@ -52,12 +52,6 @@ export default defineAppConfig({
         selectedIconPath: 'assets/icons/device-active.png'
       },
       {
-        pagePath: 'pages/digital-twin/index',
-        text: '孪生',
-        iconPath: 'assets/icons/twin.png',
-        selectedIconPath: 'assets/icons/twin-active.png'
-      },
-      {
         pagePath: 'pages/workorder-list/index',
         text: '工单',
         iconPath: 'assets/icons/order.png',
